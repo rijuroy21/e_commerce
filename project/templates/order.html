@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Summary - Home Security Ecommerce</title>
+    <link rel="stylesheet" href="{% static 'css/order.css' %}">
+</head>
+<body>
+    <div class="order-container">
+        <div class="order-summary">
+            <h2>Order Summary</h2>
+            
+            {% if user.is_authenticated %}
+                <div class="user-info">
+                    <h3>User Information</h3>
+                    <p>Name: {{ user.first_name }} {{ user.last_name }}</p>
+                    <p>Email: {{ user.email }}</p>
+                </div>
+            {% else %}
+                <p>You must be logged in to complete your order. <a href="{% url 'login' %}">Login here</a></p>
+            {% endif %}
+            
+            <div class="order-items">
+                <h3>Items in Your Cart</h3>
+                <ul>
+                    {% for item in cart_items %}
+                        <li>
+                            <p>{{ item.product.name }} ({{ item.quantity }})</p>
+                            <p>Price: ${{ item.product.price }} each</p>
+                            <p>Total: ${{ item.product.price * item.quantity }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="order-total">
+                <h3>Order Total</h3>
+                <p>Subtotal: ${{ subtotal }}</p>
+                <p>Shipping: ${{ shipping_cost }}</p>
+                <p><strong>Total: ${{ total }}</strong></p>
+            </div>
+
+            <div class="checkout-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'checkout' %}" class="checkout-btn">Proceed to Checkout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="login-btn">Login to Continue</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

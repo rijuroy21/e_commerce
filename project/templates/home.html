@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Home Security Ecommerce</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{% url 'home' %}">Home Security Shop</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{% url 'products' %}">Shop</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'register' %}">Sign Up</a></li>
+                <li><a href="{% url 'cart' %}">Cart</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Secure Your Home Today</h1>
+            <p>Explore our top-rated home security products for the ultimate protection.</p>
+            <a href="{% url 'products' %}" class="cta-btn">Shop Now</a>
+        </div>
+    </section>
+
+    <section class="featured-products">
+        <h2>Featured Products</h2>
+        <div class="product-list">
+            {% for product in featured_products %}
+                <div class="product-card">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    <h3>{{ product.name }}</h3>
+                    <p>${{ product.price }}</p>
+                    <a href="{% url 'product_detail' product.id %}" class="product-btn">View Details</a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="about">
+        <h2>Why Choose Us?</h2>
+        <p>We provide high-quality home security solutions with excellent customer service. Our products are designed to keep your family safe 24/7.</p>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="{% url 'about' %}">About Us</a>
+            <a href="{% url 'contact' %}">Contact</a>
+            <a href="{% url 'privacy' %}">Privacy Policy</a>
+        </div>
+        <p>&copy; 2025 Home Security Shop. All rights reserved.</p>
+    </footer>
+</body>
+</html>
