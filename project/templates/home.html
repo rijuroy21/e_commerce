@@ -4,58 +4,67 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Home Security Ecommerce</title>
+    <title>Home Security Products</title>
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <header>
+        <h1>Home Security Products</h1>
         <nav>
-            <div class="logo">
-                <a href="{% url 'home' %}">Home Security Shop</a>
-            </div>
-            <ul class="nav-links">
-                <li><a href="{% url 'products' %}">Shop</a></li>
-                <li><a href="{% url 'login' %}">Login</a></li>
-                <li><a href="{% url 'register' %}">Sign Up</a></li>
-                <li><a href="{% url 'cart' %}">Cart</a></li>
-            </ul>
+            <a href="/">Home</a>
+            <a href="{% url 'register' %}">Register</a>
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'cart' %}">Cart</a>
+            <a href="{% url 'logout' %}">Logout</a>
         </nav>
     </header>
-
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Secure Your Home Today</h1>
-            <p>Explore our top-rated home security products for the ultimate protection.</p>
-            <a href="{% url 'products' %}" class="cta-btn">Shop Now</a>
-        </div>
-    </section>
-
-    <section class="featured-products">
-        <h2>Featured Products</h2>
-        <div class="product-list">
-            {% for product in featured_products %}
-                <div class="product-card">
+    <main>
+        <!-- Carousel Section -->
+        <div class="carousel-container">
+            <div class="carousel">
+              <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                  <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active"
+                    aria-current="true" aria-label="Slide 1"></button>
+                  <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"
+                    aria-label="Slide 2"></button>
+                </div>
+                <div class="carousel-inner">
+                  <div class="carousel-item active">
+                    <img src="{% static 'images/banner2.jpg' %}" class="d-block w-100" alt="img2">
+                  </div>
+                  <div class="carousel-item">
+                    <img src="{% static 'images/bg2.jpg' %}" class="d-block w-100" alt="img3">
+                  </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators"
+                  data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators"
+                  data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Next</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        <!-- Products Section -->
+        <div class="products">
+            {% for product in products %}
+                <div class="product">
                     <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    <h3>{{ product.name }}</h3>
-                    <p>${{ product.price }}</p>
-                    <a href="{% url 'product_detail' product.id %}" class="product-btn">View Details</a>
+                    <h2>{{ product.name }}</h2>
+                    <p>₹{{ product.price }}</p>
+                    <a href="{% url 'product_detail' product.id %}">View Details</a>
                 </div>
             {% endfor %}
         </div>
-    </section>
+    </main>
 
-    <section class="about">
-        <h2>Why Choose Us?</h2>
-        <p>We provide high-quality home security solutions with excellent customer service. Our products are designed to keep your family safe 24/7.</p>
-    </section>
-
-    <footer>
-        <div class="footer-links">
-            <a href="{% url 'about' %}">About Us</a>
-            <a href="{% url 'contact' %}">Contact</a>
-            <a href="{% url 'privacy' %}">Privacy Policy</a>
-        </div>
-        <p>&copy; 2025 Home Security Shop. All rights reserved.</p>
-    </footer>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

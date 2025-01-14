@@ -3,38 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product.name }} - Home Security Ecommerce</title>
-    <link rel="stylesheet" href="{% static 'css/product_detail.css' %}">
+    <title>{{ product.name }} - Product Details</title>
 </head>
 <body>
-    <div class="product-detail-container">
-        <div class="product-detail">
-            <div class="product-images">
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="main-image">
-                <div class="thumbnail-images">
-                    {% for image in product.images.all %}
-                        <img src="{{ image.url }}" alt="{{ product.name }}" class="thumbnail">
-                    {% endfor %}
-                </div>
-            </div>
+    <h1>{{ product.name }}</h1>
+    <p>{{ product.description }}</p>
+    <p>Price: ₹{{ product.price }}</p>
+    <p>Category: {{ product.category }}</p>
+    <p>Stock: {{ product.stock }}</p>
 
-            <div class="product-info">
-                <h1>{{ product.name }}</h1>
-                <p class="product-description">{{ product.description }}</p>
-                <p class="product-price">${{ product.price }}</p>
-
-                {% if user.is_authenticated %}
-                    <form method="POST" action="{% url 'add_to_cart' product.id %}">
-                        {% csrf_token %}
-                        <label for="quantity">Quantity:</label>
-                        <input type="number" id="quantity" name="quantity" value="1" min="1" required>
-                        <button type="submit" class="add-to-cart-btn">Add to Cart</button>
-                    </form>
-                {% else %}
-                    <p><a href="{% url 'login' %}">Log in to add to cart</a></p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+    <form method="post">
+        {% csrf_token %}
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity" min="1" required>
+        <button type="submit">Order</button>
+    </form>
 </body>
 </html>

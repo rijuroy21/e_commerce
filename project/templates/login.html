@@ -1,40 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Home Security Ecommerce</title>
+    <title>Login</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-form">
-            <h2>Login to Your Account</h2>
-            <form method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="username">Username or Email:</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-
-                <div class="form-group remember-me">
-                    <input type="checkbox" id="remember" name="remember">
-                    <label for="remember">Remember me</label>
-                </div>
-
-                <button type="submit" class="submit-btn">Login</button>
-            </form>
-
-            <div class="links">
-                <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
-                <p>Don't have an account? <a href="{% url 'register' %}">Sign up here</a></p>
-            </div>
-        </div>
-    </div>
+    <h1>Login</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form> 
+    <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
 </body>
 </html>
