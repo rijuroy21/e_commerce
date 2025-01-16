@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+</head>
+<body>
+    <h1>Your Cart</h1>
+    <div class="cart-box">
+    {% if cart_items %}
+        <ul class="cart-items">
+            {% for item in cart_items %}
+                <li>
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" width="100">
+                    <h3>{{ item.product.name }}</h3>
+                    <p>{{ item.product.description }}</p>
+                    <p>Price: ${{ item.product.price }}</p>
+                    <p>Quantity: {{ item.quantity }}</p>
+                    <p>Total: ₹{{ item.get_total_price }}</p>
+                    <a href="{% url 'remove_from_cart' item.product.id %}"><button>Remove</button></a>
+                    <form action="{% url 'update_quantity' item.product.id 1 %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
+                        <button type="submit">Update Quantity</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+        <h4>Total Price: ₹{{ total_price }}</h4>
+    {% else %}
+        <p>Your cart is empty.</p>
+    {% endif %}
+</body>
+</html>

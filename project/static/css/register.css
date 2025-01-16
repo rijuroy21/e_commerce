@@ -90,30 +90,3 @@ p a {
 p a:hover {
     color: #3498db;
 }
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    form {
-        padding: 20px;
-        max-width: 90%;
-    }
-
-    h1 {
-        font-size: 1.8rem;
-    }
-
-    form button {
-        font-size: 1.1rem;
-    }
-
-    form input[type="text"],
-    form input[type="password"],
-    form input[type="email"] {
-        padding: 10px;
-        font-size: 1rem;
-    }
-}

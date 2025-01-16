@@ -13,7 +13,8 @@ body {
 }
 
 /* Header */
-header {
+
+/* header {
     background-color: #2c3e50;
     color: white;
     padding: 20px;
@@ -41,6 +42,79 @@ header nav a {
 
 header nav a:hover {
     background-color: #2980b9;
+}
+
+header nav :search-bar{
+    border-radius: 50px;
+} */
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #2c3e50;
+  padding: 10px 20px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo a {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ecf0f1;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.logo a:hover {
+  color: #000000;
+}
+
+.search-bar {
+  flex-grow: 1;
+  display: flex;
+  margin: 0 20px;
+  max-width: 500px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+}
+
+.search-bar button {
+  background-color: #332b41;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 0 4px 4px 0;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-bar button:hover {
+  background-color: #000000;
+}
+
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-links a {
+  color: #ecf0f1;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 /* Carousel Styles */
@@ -140,15 +214,64 @@ header nav a:hover {
     color: white;
 }
 
-/* Footer (Optional) */
+
+/* Footer Styling */
 footer {
     background-color: #2c3e50;
-    color: white;
+    color: #fff;
+    padding: 30px 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .footer-section {
+    flex: 1;
+    margin: 0 20px;
+    min-width: 250px;
+  }
+  
+  .footer-section h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .footer-section p, .footer-section ul {
+    font-size: 14px;
+  }
+  
+  .footer-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .footer-section ul li {
+    margin: 5px 0;
+  }
+  
+  .footer-section ul li a {
+    color: #ecf0f1;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .footer-section ul li a:hover {
+    color: #000000;
+  }
+  
+  .footer-bottom {
     text-align: center;
-    padding: 10px;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
-}
-
+    margin-top: 30px;
+    font-size: 14px;
+  }
+  
+  .footer-bottom p {
+    margin: 0;
+  }
 

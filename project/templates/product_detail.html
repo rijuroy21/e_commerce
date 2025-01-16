@@ -1,22 +1,112 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ product.name }} - Product Details</title>
+    <link rel="stylesheet" href="{% static 'css/product_detail.css' %}">
 </head>
 <body>
-    <h1>{{ product.name }}</h1>
-    <p>{{ product.description }}</p>
-    <p>Price: ₹{{ product.price }}</p>
-    <p>Category: {{ product.category }}</p>
-    <p>Stock: {{ product.stock }}</p>
+    <!-- Header/Navbar -->
+    <header class="navbar">
+        <div class="navbar-left">
+            <h1>GUARDIO</h1>
+        </div>
+        <nav class="navbar-right">
+            <a href="/">Home</a>
+            <a href="{% url 'register' %}">Register</a>
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'view_cart' %}">Cart</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </nav>
+    </header>
 
-    <form method="post">
-        {% csrf_token %}
-        <label for="quantity">Quantity:</label>
-        <input type="number" id="quantity" name="quantity" min="1" required>
-        <button type="submit">Order</button>
-    </form>
+    <!-- Main Container -->
+    <div class="product-container">
+        <!-- Left: Image Gallery -->
+        <div class="image-gallery">
+            <div class="main-image">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <p>No image available.</p>
+                {% endif %}
+            </div>
+            <!-- <div class="thumbnails">
+            
+                <img src="{{ product.image.url }}" alt="Thumbnail 1">
+                <img src="{{ product.image.url }}" alt="Thumbnail 2">
+                <img src="{{ product.image.url }}" alt="Thumbnail 3">
+            </div> -->
+        </div>
+
+        <!-- Middle: Product Details -->
+        <div class="product-details">
+            <h1>{{ product.name }}</h1>
+            <p class="price">₹{{ product.price }}</p>
+            <p class="stock-status">
+                {% if product.stock > 0 %} In Stock {% else %} Out of Stock {% endif %}
+            </p>
+            <p class="description">{{ product.description }}</p>
+
+            <div class="action-buttons">
+                <a href="{% url 'order_product' product.id %}" class="btn buy-now">Buy Now</a>
+            </div>
+        </div>
+        <form action="{% url 'add_to_cart' product.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" id="b1">Add to Cart</button><br><br><br><br><br><br>
+        </form>
+
+
+        <!-- Right: Specifications -->
+        <div class="product-specifications">
+            <h3>Specifications</h3>
+            <ul>
+                <li><strong>Category:</strong> {{ product.category }}</li>
+                <li><strong>Price:</strong> ₹{{ product.price }}</li>
+                <li><strong>Stock:</strong> {{ product.stock }}</li>
+                <!-- Add more details here -->
+            </ul>
+        </div>
+    </div>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+          <div class="footer-section">
+            <h4>About Us</h4>
+            <p>Your trusted source for top-of-the-line home security products.</p>
+          </div>
+          <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="/home">Home</a></li>
+              <li><a href="/shop">Shop</a></li>
+              <li><a href="/contact">Contact Us</a></li>
+              <li><a href="/privacy-policy">Privacy Policy</a></li>
+              <li><a href="/terms">Terms & Conditions</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Contact Us</h4>
+            <p>Email: support@homesecurity.com</p>
+            <p>Phone: 1-800-123-4567</p>
+          </div>
+          <div class="footer-section">
+            <h4>Follow Us</h4>
+            <ul>
+              <li><a href="https://facebook.com/homesecurity">Facebook</a></li>
+              <li><a href="https://twitter.com/homesecurity">Twitter</a></li>
+              <li><a href="https://instagram.com/homesecurity">Instagram</a></li>
+              <li><a href="https://linkedin.com/company/homesecurity">LinkedIn</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 HomeSecurity.com | All Rights Reserved</p>
+        </div>
+      </footer>
 </body>
 </html>
