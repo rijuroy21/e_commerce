@@ -8,7 +8,19 @@
     <link rel="stylesheet" href="{% static 'css/cart.css' %}">
 </head>
 <body>
-    <h1>Your Cart</h1>
+    
+       <header class="navbar">
+        <div class="navbar-left">
+            <h1>GUARDIO</h1>
+        </div>
+        <nav class="navbar-right">
+            <a href="/">Home</a>
+            <a href="{% url 'register' %}">Register</a>
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'view_cart' %}">Cart</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </nav>
+    </header>
     <div class="cart-box">
     {% if cart_items %}
         <ul class="cart-items">
@@ -16,7 +28,6 @@
                 <li>
                     <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" width="100">
                     <h3>{{ item.product.name }}</h3>
-                    <p>{{ item.product.description }}</p>
                     <p>Price: ${{ item.product.price }}</p>
                     <p>Quantity: {{ item.quantity }}</p>
                     <p>Total: ₹{{ item.get_total_price }}</p>
@@ -33,6 +44,42 @@
         <h4>Total Price: ₹{{ total_price }}</h4>
     {% else %}
         <p>Your cart is empty.</p>
-    {% endif %}
+    {% endif %} 
+  
+    <footer>
+        <div class="footer-container">
+          <div class="footer-section">
+            <h4>About Us</h4>
+            <p>Your trusted source for top-of-the-line home security products.</p>
+          </div>
+          <div class="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><a href="/home">Home</a></li>
+              <li><a href="/shop">Shop</a></li>
+              <li><a href="/contact">Contact Us</a></li>
+              <li><a href="/privacy-policy">Privacy Policy</a></li>
+              <li><a href="/terms">Terms & Conditions</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Contact Us</h4>
+            <p>Email: support@homesecurity.com</p>
+            <p>Phone: 1-800-123-4567</p>
+          </div>
+          <div class="footer-section">
+            <h4>Follow Us</h4>
+            <ul>
+              <li><a href="https://facebook.com/homesecurity">Facebook</a></li>
+              <li><a href="https://twitter.com/homesecurity">Twitter</a></li>
+              <li><a href="https://instagram.com/homesecurity">Instagram</a></li>
+              <li><a href="https://linkedin.com/company/homesecurity">LinkedIn</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 HomeSecurity.com | All Rights Reserved</p>
+        </div>
+      </footer>
 </body>
 </html>
