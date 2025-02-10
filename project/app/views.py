@@ -101,4 +101,8 @@ def update_quantity(request, product_id, quantity):
     return redirect('view_cart')
 def terms(request):
     return render(request,'terms.html')
+def privacy(request):
+    return render(request,'privacy.html')
+def contact(request):
+    return render(request,'contact.html')
 
