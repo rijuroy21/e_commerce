@@ -59,7 +59,7 @@ def order_detail(request, order_id):
 
 def user_orders(request):
     orders = Order.objects.filter(user=request.user)
-    return render(request, 'user/user_orders.html', {'orders': orders})
+    return render(request, 'user_orders.html', {'orders': orders})
 
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -99,5 +99,6 @@ def update_quantity(request, product_id, quantity):
         cart_item.delete()
 
     return redirect('view_cart')
-
+def terms(request):
+    return render(request,'terms.html')
 
