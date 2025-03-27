@@ -16,19 +16,11 @@ body, html {
     color: white;
 }
 
-.navbar h1 {
-    font-size: 24px;
-}
-
 .navbar a {
     color: white;
     text-decoration: none;
     margin: 0 10px;
     font-weight: bold;
-}
-
-.navbar a:hover {
-    text-decoration: underline;
 }
 
 /* Main Product Container */
@@ -72,41 +64,29 @@ body, html {
     font-size: 20px;
     color: #388e3c;
     font-weight: bold;
-    margin-bottom: 10px;
 }
 
-.product-details .stock-status {
-    font-size: 16px;
-    color: #888;
-    margin-bottom: 20px;
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    align-items: center;
 }
 
-.product-details .description {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 20px;
-}
-
-/* Buttons */
-.action-buttons .btn {
+.cart-form {
     display: inline-block;
-    padding: 10px 20px;
-    color: white;
+}
+
+.action-buttons .btn {
+    padding: 12px 20px;
     text-align: center;
-    text-decoration: none;
-    border-radius: 5px;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.buy-now {
-    background-color: #ff5722;
-    margin-right: 10px;
-}
-
-.buy-now:hover {
-    background-color: #e64a19;
+    border-radius: 5px;
+    transition: background-color 0.3s ease-in-out;
+    text-decoration: none;
+    min-width: 120px;
 }
 
 .add-to-cart {
@@ -119,21 +99,14 @@ body, html {
     background-color: #ddb347;
 }
 
-/* Add to Cart Form */
-form button {
-    display: inline-block;
-    background-color: #f0c14b;
-    color: #333;
-    padding: 10px 20px;
-    border: 1px solid #a88734;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.buy-now {
+    background-color: #ff5722;
+    color: white;
+    border: none;
 }
 
-form button:hover {
-    background-color: #ddb347;
+.buy-now:hover {
+    background-color: #e64a19;
 }
 
 /* Specifications Section */
@@ -143,81 +116,63 @@ form button:hover {
     padding-left: 20px;
 }
 
-.product-specifications h3 {
-    font-size: 18px;
-    color: #333;
-    margin-bottom: 10px;
-}
-
-.product-specifications ul {
-    list-style: none;
-    padding: 0;
-}
-
-.product-specifications ul li {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 5px;
-}
-
-/* Footer Styles */
+/* Footer Styling */
 footer {
     background-color: #2c3e50;
     color: #fff;
     padding: 30px 20px;
     font-family: Arial, sans-serif;
-    margin-top: auto;
-    height: 500px;
-}
-
-.footer-container {
+  }
+  
+  .footer-container {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-}
-
-.footer-section {
+  }
+  
+  .footer-section {
     flex: 1;
     margin: 0 20px;
     min-width: 250px;
-}
-
-.footer-section h4 {
+  }
+  
+  .footer-section h4 {
     font-size: 18px;
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
-}
-
-.footer-section p, .footer-section ul {
+  }
+  
+  .footer-section p, .footer-section ul {
     font-size: 14px;
-}
-
-.footer-section ul {
+  }
+  
+  .footer-section ul {
     list-style: none;
     padding: 0;
-}
-
-.footer-section ul li {
+  }
+  
+  .footer-section ul li {
     margin: 5px 0;
-}
-
-.footer-section ul li a {
+  }
+  
+  .footer-section ul li a {
     color: #ecf0f1;
     text-decoration: none;
     transition: color 0.3s ease;
-}
-
-.footer-section ul li a:hover {
+  }
+  
+  .footer-section ul li a:hover {
     color: #000000;
-}
-
-.footer-bottom {
+  }
+  
+  .footer-bottom {
     text-align: center;
     margin-top: 30px;
     font-size: 14px;
-}
-
-.footer-bottom p {
+  }
+  
+  .footer-bottom p {
     margin: 0;
-}
+  }
+

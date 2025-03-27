@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart</title>
-    <link rel="stylesheet" href="{% static 'css/cart.css' %}">
+    <link rel="stylesheet" href="{% static 'css/view_cart.css' %}">
 </head>
 <body>
     
@@ -15,8 +15,6 @@
         </div>
         <nav class="navbar-right">
             <a href="/">Home</a>
-            <a href="{% url 'register' %}">Register</a>
-            <a href="{% url 'login' %}">Login</a>
             <a href="{% url 'user_orders' %}">My Orders</a>
             <a href="{% url 'view_cart' %}">Cart</a>
             <a href="{% url 'logout' %}">Logout</a>
@@ -32,12 +30,16 @@
                     <p>Price: ${{ item.product.price }}</p>
                     <p>Quantity: {{ item.quantity }}</p>
                     <p>Total: ₹{{ item.get_total_price }}</p>
-                    <a href="{% url 'remove_from_cart' item.product.id %}"><button>Remove</button></a>
-                    <form action="{% url 'update_quantity' item.product.id 1 %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
-                        <button type="submit">Update Quantity</button>
-                    </form>
+                    <a href="{% url 'remove_from_cart' item.product.id %}">
+                      <button>Remove</button>
+                  </a>
+                  
+                    <form action="{% url 'update_quantity' item.product.id %}" method="post" style="display:inline;">
+                      {% csrf_token %}
+                      <input type="number" name="quantity" value="{{ item.quantity }}" min="1">
+                      <button type="submit">Update Quantity</button>
+                  </form>
+                  
                 </li>
             {% endfor %}
         </ul>
