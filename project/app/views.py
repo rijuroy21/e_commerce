@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.decorators import login_required
 from .models import CartItem, Product, Order, Cart
 
 def admin_home(request):
@@ -42,6 +43,7 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def order_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
@@ -50,14 +52,17 @@ def order_product(request, product_id):
         return redirect('order_detail', order_id=order.id)
     return render(request, 'order_product.html', {'product': product})
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_detail.html', {'order': order})
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def user_orders(request):
     orders = Order.objects.filter(user=request.user)
     return render(request, 'user_orders.html', {'orders': orders})
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     cart, _ = Cart.objects.get_or_create(user=request.user)
@@ -67,12 +72,14 @@ def add_to_cart(request, product_id):
         cart_item.save()
     return redirect('view_cart')
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def view_cart(request):
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.all()
     total_price = cart.get_total_price()
     return render(request, 'view_cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def remove_from_cart(request, product_id):
     cart = get_object_or_404(Cart, user=request.user)
     product = get_object_or_404(Product, id=product_id)
@@ -80,6 +87,7 @@ def remove_from_cart(request, product_id):
     cart_item.delete()
     return redirect('view_cart')
 
+@login_required(login_url='login')  # Ensure user is logged in before proceeding
 def update_quantity(request, product_id):
     if request.method == "POST":
         new_quantity = int(request.POST.get("quantity", 1))
@@ -91,6 +99,19 @@ def update_quantity(request, product_id):
         else:
             cart_item.delete()
     return redirect('view_cart')
+@login_required(login_url='login') 
+def update_quantity(request, product_id, quantity):
+    if request.method == "POST":
+        cart = get_object_or_404(Cart, user=request.user)
+        cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+        if quantity > 0:
+            cart_item.quantity = quantity
+            cart_item.save()
+        else:
+            cart_item.delete()
+    
+    return redirect('view_cart')
+
 
 def terms(request):
     return render(request, 'terms.html')
