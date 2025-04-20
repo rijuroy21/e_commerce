@@ -2,10 +2,20 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import CartItem, Product, Order, Cart
+from .models import *
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def admin_home_view(request):
+    return render(request, 'admin_home.html')
 
 def admin_home(request):
     return render(request, 'admin_home.html')
+def category_list(request):
+    categories = Product.objects.values_list('category', flat=True).distinct()
+    return render(request, 'category_list.html', {'categories': categories})
+
 
 def home(request):
     products = Product.objects.all()
@@ -28,12 +38,16 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form})
 
+
+
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            if user.is_superuser:
+                return redirect('admin_home')  # Ensure 'admin_home' is mapped in urls.py
             return redirect('home')
     else:
         form = AuthenticationForm()
@@ -126,3 +140,5 @@ def search_products(request):
     query = request.GET.get('query', '')
     products = Product.objects.filter(name__icontains=query) if query else []
     return render(request, 'search_results.html', {'products': products, 'query': query})
+
+

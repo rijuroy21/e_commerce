@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            background-color: #444;
+            padding: 15px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        main {
+            padding: 40px;
+            text-align: center;
+        }
+        .welcome {
+            font-size: 24px;
+            color: #222;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Vault Guard Admin Panel</h1>
+    </header>
+
+    <nav>
+        <a href="#">Dashboard</a>
+        <a href="#">Manage Users</a>
+        <a href="#">Orders</a>
+        <a href="#">Products</a>
+        <a href="{% url 'logout' %}">Logout</a>
+    </nav>
+
+    <main>
+        <p class="welcome">Welcome, Admin! 👋</p>
+        <p>Use the navigation above to manage the site.</p>
+    </main>
+
+</body>
+</html>
