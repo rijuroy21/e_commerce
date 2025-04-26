@@ -1,0 +1,114 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f3f4f6;
+}
+
+.sidebar {
+    background-color: #111827;
+    color: white;
+    width: 220px;
+    position: fixed;
+    height: 100%;
+    padding: 20px 0;
+}
+
+.brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    padding-left: 20px;
+    margin-bottom: 40px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-left: 20px;
+}
+
+.sidebar-nav a {
+    color: #d1d5db;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.sidebar-nav a:hover {
+    color: #ffffff;
+}
+
+.main-content {
+    margin-left: 220px;
+    padding: 40px 30px;
+}
+
+h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: #111827;
+}
+
+.booking-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+}
+
+.btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-success {
+    background-color: #16a34a;
+}
+
+.btn-danger {
+    background-color: #dc2626;
+}
+
+.btn-success:hover {
+    background-color: #15803d;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    text-align: center;
+    font-weight: 500;
+    margin-top: 30px;
+}

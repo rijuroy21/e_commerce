@@ -1,0 +1,93 @@
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f4f8; /* Lighter background color */
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+    flex-direction: column;
+}
+
+/* Container */
+form {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* Title */
+h2 {
+    color: #24639d; /* Changed to new color */
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+/* Form Input */
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="password"]:focus {
+    border-color: #24639d; /* Changed to new color */
+    outline: none;
+}
+
+/* Submit Button */
+button {
+    width: 100%;
+    background-color: #24639d; /* Changed to new color */
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #1e4e7e; /* Darker shade of #24639d for hover effect */
+}
+
+/* Messages */
+.message-container {
+    margin-top: 15px;
+}
+
+.message {
+    color: red;
+    font-size: 0.95rem;
+}
+
+/* Link Back */
+p a {
+    display: inline-block;
+    margin-top: 15px;
+    color: #24639d; /* Changed to new color */
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+p a:hover {
+    color: #1e4e7e; /* Darker shade of #24639d for hover effect */
+}

@@ -1,0 +1,41 @@
+body {
+    background-color: #f4f4f4;
+}
+
+.navbar {
+    margin-bottom: 40px;
+}
+
+.container {
+    max-width: 800px;
+}
+
+h2 {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+    font-weight: 600;
+}
+
+textarea.form-control {
+    height: 150px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}

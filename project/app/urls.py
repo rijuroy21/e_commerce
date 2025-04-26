@@ -1,28 +1,56 @@
+from django.contrib import admin
 from django.urls import path
-from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+from app import views
 
 urlpatterns = [
-    path('admin-home/', views.admin_home, name='admin_home'),
-    path('', views.home, name='home'),
-    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
-    path('register/', views.register, name='register'),
+    # Built-in Django Admin
+    path('admin/', admin.site.urls),
+
+    # User Authentication
+    path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('order/<int:product_id>/', views.order_product, name='order_product'),
-    path('order/detail/<int:order_id>/', views.order_detail, name='order_detail'),
-    path('user/orders/', views.user_orders, name='user_orders'),
-    # Add to cart, only accessible if logged in
-    path('product/<int:product_id>/add-to-cart/', views.add_to_cart, name='add_to_cart'),
-    # Cart view, only accessible if logged in
-    path('cart/', views.view_cart, name='view_cart'),
-    # Remove item from cart, only accessible if logged in
-    path('cart/remove/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
-    # Update quantity in cart, only accessible if logged in
-    path('cart/update/<int:product_id>/<int:quantity>/', views.update_quantity, name='update_quantity'),
-    path('terms', views.terms, name='terms'),
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
+    path('reset-password/', views.reset_password, name='reset_password'),
+
+    # Main Pages
+    path('', views.index, name='index'),
+    path('category/', views.category, name='category'),
+    path('bookings/', views.bookings, name='bookings'),
+    path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
     path('contact/', views.contact, name='contact'),
-    path('search/', views.search_products, name='search_products'),
-    path('cart/update/<int:product_id>/<int:quantity>/', views.update_quantity, name='update_quantity'),
 
+    # Product Display & Search
+    path('product/<int:id>/', views.product, name='product'),
+    path('products/', views.product_list, name='product_list'),
+    path('search/', views.search_results, name='search_results'),
+
+    # Cart Management
+    path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/', views.cart_view, name='cart_view'),
+    path('cart/increment/<int:id>/', views.increment_cart, name='increment_cart'),
+    path('cart/decrement/<int:id>/', views.decrement_cart, name='decrement_cart'),
+    path('cart/delete/<int:id>/', views.delete_cart_item, name='delete_cart_item'),
+    path('cart/remove/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
+
+    # Checkout & Orders
+    path('checkout/', views.checkout, name='checkout'),
+    path('process-checkout/', views.process_checkout, name='process_checkout'),
+    path('buy-now/<int:product_id>/', views.buy_now, name='buy_now'),
+    path('order-confirmation/<int:order_id>/', views.contact, name='order_confirmation'),  # Replace with real view later
+    path('update_quantity/<int:product_id>/', views.update_quantity, name='update_quantity'),
+
+    # Custom Admin Panel / Dashboard
+    path('dashboard/', views.first_page, name='firstpage'), 
+    path('dashboard/add-product/', views.add_product, name='add_product'),
+    path('dashboard/edit/<int:id>/', views.edit_g, name='edit_g'),
+    path('dashboard/delete/<int:id>/', views.delete_g, name='delete_g'),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
