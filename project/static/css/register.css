@@ -1,4 +1,3 @@
-/* Global Styles */
 * {
     margin: 0;
     padding: 0;
@@ -19,7 +18,6 @@ body {
     padding: 20px;
 }
 
-/* Title */
 .register-title {
     color: #24639d;
     margin-bottom: 20px;
@@ -27,7 +25,6 @@ body {
     font-weight: 600;
 }
 
-/* Container */
 .register-container {
     background-color: white;
     padding: 40px 30px;
@@ -38,7 +35,6 @@ body {
     text-align: center;
 }
 
-/* Form */
 .register-form {
     display: flex;
     flex-direction: column;
@@ -61,7 +57,6 @@ body {
     outline: none;
 }
 
-/* Register Button */
 .register-form input[type="submit"] {
     background-color: #24639d;
     color: white;
@@ -79,7 +74,6 @@ body {
     transform: scale(1.02);
 }
 
-/* Link Below Form */
 .register-links {
     margin-top: 20px;
     font-size: 14px;
@@ -99,7 +93,16 @@ body {
     background-color: #24639d;
 }
 
-/* Responsive Styles */
+.message-container {
+    margin-top: 15px;
+}
+
+.message {
+    color: #d9534f;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
 @media (max-width: 768px) {
     body {
         padding: 10px;

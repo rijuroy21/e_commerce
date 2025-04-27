@@ -5,24 +5,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% if data1 %}Edit{% else %}Add{% endif %} Product - VaultGuard</title>
-
     <link rel="stylesheet" href="{% static 'css/firstpage.css' %}">
     <link rel="stylesheet" href="{% static 'css/add.css' %}">
 </head>
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar">
     <h2 class="brand">VAULTGUARD</h2>
     <nav class="sidebar-nav">
-        <a href="{% url 'firstpage' %}"> Home</a>
+        <a href="{% url 'firstpage' %}">Home</a>
         <a href="{% url 'add_product' %}">Add Product</a>
         <a href="{% url 'bookings' %}">View Bookings</a>
         <a href="{% url 'logout' %}">Logout</a>
     </nav>
 </div>
 
-<!-- Main Content -->
 <div class="main-content">
     <div class="product-form-wrapper">
         <h2>{% if data1 %}Edit{% else %}Add{% endif %} Product</h2>
@@ -38,14 +35,12 @@
         <form action="{% if data1 %}{% url 'edit_g' data1.id %}{% else %}{% url 'add_product' %}{% endif %}" method="post" enctype="multipart/form-data" class="product-form">
             {% csrf_token %}
 
-            <!-- Image Upload -->
             <div class="form-section">
                 <h3>Upload Image</h3>
                 <label for="image">Main Image:</label>
                 <input type="file" name="image" id="image" accept="image/*" {% if not data1 %}required{% endif %}>
             </div>
 
-            <!-- Product Details -->
             <div class="form-section">
                 <h3>Product Details</h3>
 
@@ -58,8 +53,6 @@
                 <label for="offerprice">Offer Price:</label>
                 <input type="number" name="offerprice" step="0.01" value="{{ data1.offerprice|default:'' }}">
 
-                <label for="offers">Available Offers:</label>
-                <input type="text" name="offers" value="{{ data1.offers|default:'' }}">
 
                 <label for="category">Category:</label>
                 <select name="category" required>

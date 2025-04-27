@@ -15,20 +15,11 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
-
-
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-
-
-# Home Page
 def index(request):
     products = Product.objects.all().order_by('-id')[:10]
     return render(request, "index.html", {"products": products})
-
-
-# Product Detail Page
-
 def product(request, id):
     product = get_object_or_404(Product, id=id)
     cart_item_ids = []
@@ -38,18 +29,9 @@ def product(request, id):
         if cart:
             cart_item_ids = cart.items.values_list('product_id', flat=True)
 
-    # Get additional images if any
-    additional_images = [
-        img for img in [
-            product.image1,
-            product.image2,
-            product.image3,
-            product.image4,
-            product.image5
-        ] if img
-    ]
+    # Since you only have one image field, just pass the single image
+    additional_images = [product.image] if product.image else []
 
-    # Get similar products (same category, excluding current)
     similar_products = Product.objects.filter(category=product.category).exclude(id=product.id)
 
     return render(request, 'product.html', {
@@ -81,15 +63,11 @@ def product_list(request):
         'categories': categories,
     })
 
-# Search
 def search_results(request):
     query = request.GET.get('q')
     results = Product.objects.filter(name__icontains=query) if query else Product.objects.all()
     return render(request, 'search.html', {'results': results, 'query': query})
 
-
-
-# User Registration View
 def register_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -116,8 +94,6 @@ def register_view(request):
 
     return render(request, 'register.html')
 
-
-# User Login View
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -128,7 +104,7 @@ def login_view(request):
             auth.login(request, user)
 
             if user.is_superuser:
-                return redirect('firstpage')  # 👈 This matches the URL pattern above
+                return redirect('firstpage')
             else:
                 return redirect('index')
         else:
@@ -137,14 +113,10 @@ def login_view(request):
 
     return render(request, 'login.html')
 
-
-# User Logout View
 def logout_view(request):
     auth.logout(request)
     return redirect('login')
 
-
-# Forgot Password View
 def forgot_password_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -166,8 +138,6 @@ def forgot_password_view(request):
 
     return render(request, 'forgot_password.html')
 
-
-# OTP Verification View
 def verify_otp(request):
     if request.method == 'POST':
         entered_otp = request.POST.get('otp')
@@ -179,8 +149,6 @@ def verify_otp(request):
 
     return render(request, 'verify_otp.html')
 
-
-# Password Reset View
 def reset_password(request):
     if request.method == 'POST':
         new_password = request.POST.get('new_password')
@@ -198,18 +166,13 @@ def reset_password(request):
 
     return render(request, 'reset_password.html')
 
-
-
-# Admin Panel: Product Management
 def first_page(request):
     products = Product.objects.all()
     return render(request, 'firstpage.html', {'products': products})
 
-
 def delete_g(request, id):
     get_object_or_404(Product, pk=id).delete()
     return redirect('firstpage')
-
 
 def edit_g(request, id):
     product = get_object_or_404(Product, id=id)
@@ -218,16 +181,14 @@ def edit_g(request, id):
         product.name = request.POST.get('name')
         product.price = request.POST.get('price')
         product.offerprice = request.POST.get('offerprice')
-        product.offers = request.POST.get('offers')
         product.category = request.POST.get('category')
         product.warranty = request.POST.get('warranty')
         product.description = request.POST.get('description')
         product.stock = request.POST.get('stock')
 
-        for i in range(6):
-            field = f'image{i if i else ""}'
-            if field in request.FILES:
-                setattr(product, field, request.FILES[field])
+        # Update the image if provided
+        if 'image' in request.FILES:
+            product.image = request.FILES['image']
 
         product.save()
         messages.success(request, 'Product updated successfully!')
@@ -235,7 +196,7 @@ def edit_g(request, id):
 
     return render(request, 'add.html', {'data1': product})
 
-# Admin Panel: Add Product
+
 
 def add_product(request):
     if request.method == 'POST':
@@ -257,19 +218,15 @@ def add_product(request):
             category=request.POST.get('category'),
             warranty=request.POST.get('warranty'),
             stock=stock,
-            image=request.FILES.get('image'),
-            image1=request.FILES.get('image1'),
-            image2=request.FILES.get('image2'),
-            image3=request.FILES.get('image3'),
-            image4=request.FILES.get('image4'),
-            image5=request.FILES.get('image5'),
+            image=request.FILES.get('image'),  # Only this image field
         )
         messages.success(request, "Product added successfully!")
-        return redirect('firstpage')
+        return redirect('firstpage')  # Ensure the redirect happens here after success
 
+    # This part handles the GET request to render the form
     return render(request, 'add.html')
 
-# Cart Views
+
 @login_required(login_url='login')
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -296,7 +253,6 @@ def add_to_cart(request, product_id):
     messages.success(request, "Item added to cart.")
     return redirect('cart_view')
 
-
 @login_required(login_url='login')
 def increment_cart(request, id):
     cart_item = get_object_or_404(CartItem, id=id, cart__user=request.user)
@@ -312,7 +268,6 @@ def increment_cart(request, id):
         messages.error(request, "No more stock available.")
 
     return redirect('cart_view')
-
 
 @login_required(login_url='login')
 def decrement_cart(request, id):
@@ -337,24 +292,23 @@ def decrement_cart(request, id):
 def buy_now(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
-    # Get or create the user's cart
     cart, created = Cart.objects.get_or_create(user=request.user)
 
-    # Check if product is already in the cart
     item, created = CartItem.objects.get_or_create(cart=cart, product=product)
     if not created:
         item.quantity += 1
         item.save()
 
     return redirect('checkout')
+
 def remove_from_cart(request, product_id):
     try:
         cart = Cart.objects.get(user=request.user)
         cart_item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
         cart_item.delete()
     except Cart.DoesNotExist:
-        pass  # No cart, nothing to delete
-    return redirect('checkout') 
+        pass
+    return redirect('checkout')
 
 @login_required(login_url='login')
 def delete_cart_item(request, id):
@@ -365,7 +319,6 @@ def delete_cart_item(request, id):
     messages.success(request, "Item removed from cart.")
     return redirect('cart_view')
 
-
 @login_required(login_url='login')
 def cart_view(request):
     cart = Cart.objects.filter(user=request.user).first()
@@ -375,16 +328,13 @@ def cart_view(request):
 
 @login_required(login_url='login')
 def checkout(request):
-    # Fetch the cart items associated with the logged-in user
     cart_items = CartItem.objects.filter(cart__user=request.user)
     
-    # Calculate total price considering offerprice if available
     total_price = sum(item.product.offerprice * item.quantity if item.product.offerprice else item.product.price * item.quantity for item in cart_items)
 
-    # If total_price is greater than zero, create a Razorpay order
     if total_price > 0:
         razorpay_order = client.order.create({
-            "amount": int(total_price * 100),  # Convert to paise
+            "amount": int(total_price * 100),
             "currency": "INR",
             "payment_capture": "1"
         })
@@ -393,7 +343,7 @@ def checkout(request):
 
     context = {
         'cart_items': cart_items,
-        'items_total': cart_items.count(),  # Count of items, not the items themselves
+        'items_total': cart_items.count(),
         'total_price': total_price,
         'razorpay_key_id': settings.RAZORPAY_KEY_ID,
         'razorpay_amount': total_price,
@@ -416,7 +366,6 @@ def process_checkout(request):
         cart_items = CartItem.objects.filter(user=request.user)
         total_price = sum(item.product.offerprice * item.quantity for item in cart_items)
 
-        # Create order (example)
         order = Order.objects.create(
             user=request.user,
             name=name,
@@ -430,7 +379,6 @@ def process_checkout(request):
             razorpay_payment_id=razorpay_payment_id
         )
 
-        # Move cart items to order_items
         for cart_item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -438,16 +386,14 @@ def process_checkout(request):
                 quantity=cart_item.quantity,
                 price=cart_item.product.offerprice
             )
-            # Decrease stock
             cart_item.product.stock -= cart_item.quantity
             cart_item.product.save()
 
         cart_items.delete()
 
-        return redirect('order_success')  # Redirect to a success page
+        return redirect('order_success')
 
     return redirect('checkout')
-
 
 @login_required(login_url='login')
 def update_quantity(request, product_id):
@@ -472,27 +418,24 @@ def update_quantity(request, product_id):
 
     return redirect('checkout')
 
-
+def payment_successful(request):
+    print("Payment Successful view is called")
+    return render(request, 'payment_successful.html')
 
 def order_success(request):
     return render(request, 'order_success.html')
 
-# Static Pages
 def category(request):
     return render(request, 'category.html')
-
 
 def bookings(request):
     return render(request, 'bookings.html')
 
-
 def terms(request):
     return render(request, 'terms.html')
 
-
 def privacy(request):
     return render(request, 'privacy.html')
-
 
 def contact(request):
     return render(request, 'contact.html')

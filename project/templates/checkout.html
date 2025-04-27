@@ -14,7 +14,6 @@
 
 <body>
 
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">VAULT GUARD</a>
@@ -22,13 +21,11 @@
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
                 <form class="d-flex me-auto" method="GET" action="{% url 'search_results' %}">
                     <input class="form-control me-2" type="text" name="q" placeholder="Search products..." required>
                     <button class="btn btn-outline-light" type="submit">Search</button>
                 </form>
-
                 <ul class="navbar-nav ms-3 gap-2">
                     <li class="nav-item"><a class="nav-link text-white" href="{% url 'index' %}">Home</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{% url 'product_list' %}">All Products</a></li>
@@ -43,7 +40,6 @@
         </div>
     </nav>
 
-    <!-- Checkout Page Content -->
     <div class="checkout-container">
         <h1>Checkout</h1>
 
@@ -77,11 +73,9 @@
                 </li>
                 {% endfor %}
             </ul>
-
             <div class="order-total">
                 <p>Total Price: ₹{{ total_price }}</p>
             </div>
-
             <div class="delivery-date">
                 <p>Delivery by: {{ delivery_date|date:"D, M d, Y" }}</p>
             </div>
@@ -94,31 +88,24 @@
             <h2>Billing Information</h2>
             <form id="billing-form">
                 {% csrf_token %}
-
-                <!-- Full Name -->
                 <label for="name">Full Name:</label>
                 <input type="text" id="name" name="name" placeholder="Enter your full name" value="{{ user.first_name }}" required><br><br>
 
-                <!-- Phone Number -->
                 <label for="phone">Phone Number:</label>
                 <input type="text" id="phone" name="phone" placeholder="Enter your phone number" value="{{ user.profile.phone_number }}" required><br><br>
 
-                <!-- Pincode -->
                 <label for="pincode">Pincode:</label>
                 <input type="text" id="pincode" name="pincode" placeholder="Enter your pincode" value="{{ user.profile.pincode }}" required><br><br>
 
-                <!-- Address -->
                 <label for="address">Shipping Address:</label>
                 <textarea id="address" name="address" rows="4" placeholder="Enter your shipping address" required>{{ user.profile.address }}</textarea><br><br>
 
-                <!-- Address Type -->
                 <label for="address_type">Address Type:</label>
                 <select id="address_type" name="address_type" required>
                     <option value="home" {% if user.profile.address_type == 'home' %}selected{% endif %}>Home</option>
                     <option value="office" {% if user.profile.address_type == 'office' %}selected{% endif %}>Office</option>
                 </select><br><br>
 
-                <!-- Payment Method -->
                 <label for="payment-method">Payment Method:</label>
                 <select id="payment-method" name="payment_method" required>
                     <option value="razorpay">Pay with Razorpay</option>
@@ -130,47 +117,85 @@
         </div>
     </div>
 
-    <!-- Razorpay Payment Script -->
     <script>
         function payNow() {
-            var paymentMethod = document.getElementById('payment-method').value;
-            if (paymentMethod === 'razorpay') {
-                var options = {
-                    "key": "{{ razorpay_key_id }}", 
-                    "amount": "{{ razorpay_amount|default:total_price|floatformat:0 }}00", 
-                    "currency": "INR",
-                    "name": "Vault Guard",
-                    "description": "Order Payment",
-                    "image": "{% static 'images/logo.png' %}",
-                    "handler": function (response) {
-                        var form = document.getElementById('billing-form');
-                        var input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'razorpay_payment_id';
-                        input.value = response.razorpay_payment_id;
-                        form.appendChild(input);
-                        form.method = 'POST';
-                        form.action = "{% url 'process_checkout' %}";
-                        form.submit();
-                    },
-                    "prefill": {
-                        "name": document.getElementById('name').value,
-                        "contact": document.getElementById('phone').value,
-                    },
-                    "theme": {
-                        "color": "#3399cc"
-                    }
-                };
-                var rzp1 = new Razorpay(options);
-                rzp1.open();
-            } else {
+    var paymentMethod = document.getElementById('payment-method').value;
+    if (paymentMethod === 'razorpay') {
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ razorpay_amount|default:total_price|floatformat:0 }}00",
+            "currency": "INR",
+            "name": "Vault Guard",
+            "description": "Order Payment",
+            "image": "{% static 'images/logo.png' %}",
+            "handler": function (response) {
                 var form = document.getElementById('billing-form');
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'razorpay_payment_id';
+                input.value = response.razorpay_payment_id;
+                form.appendChild(input);
                 form.method = 'POST';
                 form.action = "{% url 'process_checkout' %}";
                 form.submit();
+            },
+            "prefill": {
+                "name": document.getElementById('name').value,
+                "contact": document.getElementById('phone').value,
+            },
+            "theme": {
+                "color": "#3399cc"
             }
-        }
+        };
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+    } else if (paymentMethod === 'cod') {
+        // If Cash on Delivery is selected, submit the form to the success page directly
+        var form = document.getElementById('billing-form');
+        form.method = 'POST';
+        form.action = "{% url 'payment_successful' %}";  // Redirect to the success page
+        form.submit();
+    }
+}
+
     </script>
+    
+  <footer class="bg-dark text-white pt-5 pb-3 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <h5>About Us</h5>
+          <p>Your trusted source for top-of-the-line home security products.</p>
+        </div>
+        <div class="col-md-3 mb-3">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="/" class="text-white text-decoration-none">Home</a></li>
+            <li>Contact Us</a></li>
+            <li>Privacy Policy</a></li>
+            <li>Terms & Conditions</a></li>
+          </ul>
+        </div>
+        <div class="col-md-3 mb-3">
+          <h5>Contact Us</h5>
+          <p>Email: support@homesecurity.com</p>
+          <p>Phone: 1-800-123-4567</p>
+        </div>
+        <div class="col-md-3 mb-3">
+          <h5>Follow Us</h5>
+          <ul class="list-unstyled">
+            <li><a href="https://facebook.com/homesecurity" class="text-white text-decoration-none">Facebook</a></li>
+            <li><a href="https://twitter.com/homesecurity" class="text-white text-decoration-none">Twitter</a></li>
+            <li><a href="https://instagram.com/homesecurity" class="text-white text-decoration-none">Instagram</a></li>
+            <li><a href="https://linkedin.com/company/homesecurity" class="text-white text-decoration-none">LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <p class="mb-0">&copy; 2025 HomeSecurity.com | All Rights Reserved</p>
+      </div>
+    </div>
+  </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

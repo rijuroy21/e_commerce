@@ -27,13 +27,7 @@
         <div class="login-links">
             <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
         </div>
-        {% if messages %}
-        <div class="message-container">
-            {% for message in messages %}
-            <p class="message">{{ message }}</p>
-            {% endfor %}
-        </div>
-        {% endif %}
+      
     </div>
 </body>
 

@@ -1,12 +1,22 @@
-/* General Styles */
-body {
-  font-family: Arial, sans-serif;
+/* Ensures the body and html take the full height of the viewport */
+html, body {
+  height: 100%;
   margin: 0;
   padding: 0;
   background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Navbar */
+body {
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  flex: 1;
+}
+
+/* Navbar styling */
 .navbar {
   background-color: #333;
   color: white;
@@ -23,19 +33,7 @@ body {
   text-decoration: none;
 }
 
-.nav-links {
-  display: flex;
-  gap: 15px;
-}
-
-.nav-links button {
-  background-color: white;
-  border: none;
-  padding: 8px 15px;
-  cursor: pointer;
-}
-
-/* Cart Page */
+/* Cart container */
 .cart-container {
   max-width: 1000px;
   margin: 40px auto;
@@ -51,12 +49,12 @@ body {
   margin-bottom: 20px;
 }
 
-/* Cart Items */
 ul {
   list-style: none;
   padding: 0;
 }
 
+/* Styling cart items */
 .cart-item {
   display: flex;
   align-items: center;
@@ -100,7 +98,6 @@ ul {
   background-color: #0056b3;
 }
 
-/* Remove Button */
 .delete-button {
   background-color: #dc3545;
   padding: 8px 12px;
@@ -115,7 +112,7 @@ ul {
   background-color: #c82333;
 }
 
-/* Cart Summary */
+/* Cart summary */
 .cart-summary {
   display: flex;
   justify-content: space-between;
@@ -130,7 +127,6 @@ ul {
   font-weight: bold;
 }
 
-/* Checkout Button */
 .checkout-btn {
   padding: 12px 25px;
   background-color: #28a745;
@@ -145,31 +141,73 @@ ul {
   background-color: #218838;
 }
 
-/* Empty Cart Message */
 .cart-container p {
   text-align: center;
   font-size: 18px;
   color: #888;
 }
 
-/* Responsive */
+/* Footer styling */
+footer {
+  background-color: #333;
+  color: white;
+  padding: 20px 0;
+  margin-top: auto; /* Ensures footer stays at the bottom of the page */
+}
+
+footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+footer .row {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+footer .col-md-3 {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 20px;
+}
+
+footer h5 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+footer p, footer a {
+  font-size: 14px;
+  color: #ccc;
+}
+
+footer a {
+  text-decoration: none;
+  color: #ccc;
+}
+
+footer a:hover {
+  color: white;
+}
+
 @media (max-width: 768px) {
   .cart-item {
-      flex-direction: column;
-      align-items: flex-start;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .cart-item img {
-      margin-bottom: 10px;
+    margin-bottom: 10px;
   }
 
   .cart-summary {
-      flex-direction: column;
-      align-items: center;
+    flex-direction: column;
+    align-items: center;
   }
 
   .checkout-btn {
-      width: 100%;
-      margin-top: 15px;
+    width: 100%;
+    margin-top: 15px;
   }
 }
