@@ -11,7 +11,13 @@ import random
 from .models import Product, Cart, CartItem, Order
 from django.contrib import auth
 from django.utils import timezone
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
+
+
+client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 
 
@@ -367,61 +373,81 @@ def cart_view(request):
     total_price = sum(item.get_total_price() for item in cart_items)
     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
-
 @login_required(login_url='login')
 def checkout(request):
-    # Get the user's cart
-    cart = Cart.objects.filter(user=request.user).first()
-
-    # Initialize variables
-    cart_items = cart.items.all() if cart else []
-    total_price = 0
-    items_total = []
-
-    # Calculate total price for each item and accumulate for the total price
-    for item in cart_items:
-        item_total = item.product.offerprice * item.quantity
-        items_total.append({
-            'item': item,
-            'item_total': item_total
-        })
-        total_price += item_total
+    # Fetch the cart items associated with the logged-in user
+    cart_items = CartItem.objects.filter(cart__user=request.user)
     
-    # Calculate the delivery date as 3 days from now
-    delivery_date = timezone.now() + timedelta(days=3)
+    # Calculate total price considering offerprice if available
+    total_price = sum(item.product.offerprice * item.quantity if item.product.offerprice else item.product.price * item.quantity for item in cart_items)
 
-    # Pass cart_items, items_total, total_price, and delivery_date to the template
-    return render(request, 'checkout.html', {
+    # If total_price is greater than zero, create a Razorpay order
+    if total_price > 0:
+        razorpay_order = client.order.create({
+            "amount": int(total_price * 100),  # Convert to paise
+            "currency": "INR",
+            "payment_capture": "1"
+        })
+    else:
+        razorpay_order = None
+
+    context = {
         'cart_items': cart_items,
-        'items_total': items_total,
+        'items_total': cart_items.count(),  # Count of items, not the items themselves
         'total_price': total_price,
-        'delivery_date': delivery_date
-    })
+        'razorpay_key_id': settings.RAZORPAY_KEY_ID,
+        'razorpay_amount': total_price,
+        'razorpay_order_id': razorpay_order['id'] if razorpay_order else '',
+        'delivery_date': timezone.now() + timezone.timedelta(days=5),
+    }
+    return render(request, 'checkout.html', context)
 
-@login_required(login_url='login')
+@csrf_exempt
 def process_checkout(request):
     if request.method == 'POST':
+        name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        pincode = request.POST.get('pincode')
         address = request.POST.get('address')
+        address_type = request.POST.get('address_type')
         payment_method = request.POST.get('payment_method')
+        razorpay_payment_id = request.POST.get('razorpay_payment_id')
 
-        cart = Cart.objects.filter(user=request.user).first()
-        cart_items = cart.items.all() if cart else []
-        total_price = sum(item.get_total_price() for item in cart_items)
+        cart_items = CartItem.objects.filter(user=request.user)
+        total_price = sum(item.product.offerprice * item.quantity for item in cart_items)
 
+        # Create order (example)
         order = Order.objects.create(
             user=request.user,
-            shipping_address=address,
+            name=name,
+            phone=phone,
+            pincode=pincode,
+            address=address,
+            address_type=address_type,
             payment_method=payment_method,
-            total_price=total_price
+            total_price=total_price,
+            status='Paid' if razorpay_payment_id else 'Pending',
+            razorpay_payment_id=razorpay_payment_id
         )
 
-        cart.items.all().delete()
-        messages.success(request, "Order placed successfully!")
-        return redirect('order_confirmation', order_id=order.id)
-    
-    
+        # Move cart items to order_items
+        for cart_item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=cart_item.product,
+                quantity=cart_item.quantity,
+                price=cart_item.product.offerprice
+            )
+            # Decrease stock
+            cart_item.product.stock -= cart_item.quantity
+            cart_item.product.save()
 
-    return redirect('cart_view')
+        cart_items.delete()
+
+        return redirect('order_success')  # Redirect to a success page
+
+    return redirect('checkout')
+
 
 @login_required(login_url='login')
 def update_quantity(request, product_id):

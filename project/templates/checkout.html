@@ -9,6 +9,7 @@
     <title>Checkout</title>
     <link rel="stylesheet" href="{% static 'css/checkout.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
@@ -50,21 +51,26 @@
         <div class="order-summary">
             <h2>Your Order</h2>
             <ul>
-                {% for item_total in items_total %}
+                {% for item in cart_items %}
                 <li class="cart-item d-flex align-items-center gap-3 mb-3">
-                    <img src="{{ item_total.item.product.image.url }}" alt="{{ item_total.item.product.name }}"
-                        width="100">
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" width="100">
                     <div class="cart-item-details flex-grow-1">
-                        <p><strong>{{ item_total.item.product.name }}</strong></p>
-                        <p>Price: ₹{{ item_total.item.product.offerprice }}</p>
-                        <form method="POST" action="{% url 'update_quantity' item_total.item.product.id %}" class="quantity-form">
+                        <p><strong>{{ item.product.name }}</strong></p>
+                        <p>Price: ₹
+                            {% if item.product.offerprice %}
+                                {{ item.product.offerprice }}
+                            {% else %}
+                                {{ item.product.price }}
+                            {% endif %}
+                        </p>
+                        <form method="POST" action="{% url 'update_quantity' item.product.id %}" class="quantity-form">
                             {% csrf_token %}
                             <button type="submit" name="action" value="decrease" class="btn btn-secondary quantity-btn">-</button>
-                            <span class="quantity-text">{{ item_total.item.quantity }}</span>
+                            <span class="quantity-text">{{ item.quantity }}</span>
                             <button type="submit" name="action" value="increase" class="btn btn-secondary quantity-btn">+</button>
                         </form>
                     </div>
-                    <form method="POST" action="{% url 'remove_from_cart' item_total.item.product.id %}">
+                    <form method="POST" action="{% url 'remove_from_cart' item.product.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger">Remove</button>
                     </form>
@@ -86,7 +92,7 @@
 
         <div class="billing-details">
             <h2>Billing Information</h2>
-            <form method="POST" action="{% url 'process_checkout' %}">
+            <form id="billing-form">
                 {% csrf_token %}
 
                 <!-- Full Name -->
@@ -95,7 +101,7 @@
 
                 <!-- Phone Number -->
                 <label for="phone">Phone Number:</label>
-                <input type="text" id="phone" name="phone" placeholder="Enter your phone number" value="{{ user.profile.phone }}" required><br><br>
+                <input type="text" id="phone" name="phone" placeholder="Enter your phone number" value="{{ user.profile.phone_number }}" required><br><br>
 
                 <!-- Pincode -->
                 <label for="pincode">Pincode:</label>
@@ -115,16 +121,56 @@
                 <!-- Payment Method -->
                 <label for="payment-method">Payment Method:</label>
                 <select id="payment-method" name="payment_method" required>
-                    <option value="credit_card">Credit Card</option>
-                    <option value="debit_card">Debit Card</option>
-                    <option value="net_banking">Net Banking</option>
+                    <option value="razorpay">Pay with Razorpay</option>
                     <option value="cod">Cash on Delivery</option>
                 </select><br><br>
 
-                <button type="submit" class="checkout-btn">Proceed to Payment</button>
+                <button type="button" onclick="payNow()" class="checkout-btn">Proceed to Payment</button>
             </form>
         </div>
     </div>
+
+    <!-- Razorpay Payment Script -->
+    <script>
+        function payNow() {
+            var paymentMethod = document.getElementById('payment-method').value;
+            if (paymentMethod === 'razorpay') {
+                var options = {
+                    "key": "{{ razorpay_key_id }}", 
+                    "amount": "{{ razorpay_amount|default:total_price|floatformat:0 }}00", 
+                    "currency": "INR",
+                    "name": "Vault Guard",
+                    "description": "Order Payment",
+                    "image": "{% static 'images/logo.png' %}",
+                    "handler": function (response) {
+                        var form = document.getElementById('billing-form');
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'razorpay_payment_id';
+                        input.value = response.razorpay_payment_id;
+                        form.appendChild(input);
+                        form.method = 'POST';
+                        form.action = "{% url 'process_checkout' %}";
+                        form.submit();
+                    },
+                    "prefill": {
+                        "name": document.getElementById('name').value,
+                        "contact": document.getElementById('phone').value,
+                    },
+                    "theme": {
+                        "color": "#3399cc"
+                    }
+                };
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+            } else {
+                var form = document.getElementById('billing-form');
+                form.method = 'POST';
+                form.action = "{% url 'process_checkout' %}";
+                form.submit();
+            }
+        }
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

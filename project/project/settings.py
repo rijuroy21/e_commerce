@@ -125,7 +125,11 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'riju210204@gmail.com'
-EMAIL_HOST_PASSWORD = 'hvnp imrb gdlb welx'  # not your email password!
+EMAIL_HOST_PASSWORD = 'hvnp imrb gdlb welx' 
+# settings.py
+RAZORPAY_KEY_ID = 'rzp_test_wpWXN2mlVHzs4a'
+RAZORPAY_KEY_SECRET = '7beufCZduSXv7MuQtLeBZyf8'
+
 
 
 MEDIA_URL = '/media/'  

@@ -77,3 +77,4 @@ class UserProfile(models.Model):
         # Attempt to get the profile or create it if it doesn't exist
         profile, created = cls.objects.get_or_create(user=user)
         return profile
+
