@@ -19,3 +19,20 @@ body {
 footer {
     margin-top: auto; /* Push the footer to the bottom of the page */
 }
+
+.tracking-steps ul {
+    padding-left: 0;
+    margin-top: 30px;
+}
+.tracking-steps .list-group-item {
+    border: none;
+    border-radius: 0;
+    font-weight: bold;
+    text-align: center;
+}
+.tracking-steps .list-group-item.bg-success {
+    background-color: #28a745 !important;
+}
+.order-details img {
+    max-height: 100px;
+}

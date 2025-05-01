@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 CATEGORY_CHOICES = [
     ('Lighting', 'Lighting'),
@@ -25,9 +26,19 @@ class Product(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    stock = models.PositiveIntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1)  # Renamed from 'stock' for clarity
     ordered_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=100, default="Pending")
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Placed', 'Placed'),
+            ('Confirmed', 'Confirmed'),
+            ('Shipped', 'Shipped'),
+            ('Delivered', 'Delivered'),
+        ],
+        default='Placed'
+    )
+    delivery_date = models.DateField(default=timezone.localdate)  # ✅ Safe callable default
 
     def __str__(self):
         return f"Order by {self.user.username} for {self.product.name}"
@@ -47,14 +58,13 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)  # Rename stock to quantity
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return f"{self.quantity} of {self.product.name}"
 
     def get_total_price(self):
         return self.product.price * self.quantity
-
 
 
 class UserProfile(models.Model):
@@ -69,4 +79,3 @@ class UserProfile(models.Model):
     def get_or_create_profile(cls, user):
         profile, created = cls.objects.get_or_create(user=user)
         return profile
-

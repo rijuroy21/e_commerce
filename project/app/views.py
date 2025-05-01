@@ -14,6 +14,7 @@ from django.utils import timezone
 import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from .models import Order
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
@@ -422,6 +423,28 @@ def payment_successful(request):
     print("Payment Successful view is called")
     return render(request, 'payment_successful.html')
 
+def order_tracking(request):
+    return render(request, 'order_tracking.html')
+
+def track_order(request):
+    if request.method == 'POST':
+        order_number = request.POST.get('order_number')
+        try:
+            order = Order.objects.select_related('product', 'user').get(order_number=order_number)
+            product = order.product
+            context = {
+                'order_status': order.status,
+                'product': product,
+                'order': order,
+            }
+            return render(request, 'order_tracking.html', {
+    'order_status': order.status,
+    'order': order,
+    'product': order.product,  # assuming order has a ForeignKey to Product
+})
+        except Order.DoesNotExist:
+            return render(request, 'order_tracking.html', {'error': 'Order not found'})
+        
 def order_success(request):
     return render(request, 'order_success.html')
 

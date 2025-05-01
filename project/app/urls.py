@@ -37,6 +37,8 @@ urlpatterns = [
     path('dashboard/edit/<int:id>/', views.edit_g, name='edit_g'),
     path('dashboard/delete/<int:id>/', views.delete_g, name='delete_g'),
     path('payment-successful/', views.payment_successful, name='payment_successful'),
+    path('order-tracking/', views.order_tracking, name='order_tracking'),
+    path('track-order/', views.track_order, name='track_order'),
 ]
 
 if settings.DEBUG:
