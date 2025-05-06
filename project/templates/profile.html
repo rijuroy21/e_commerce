@@ -4,19 +4,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Profile - WatchCart</title>
+  <title>My Profile - Vault Guard</title>
   <link rel="stylesheet" href="{% static 'css/profile.css' %}" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
     body {
-      padding-top: 50px; 
+      padding-top: 80px; /* Space for fixed navbar */
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    .main-content {
+      flex: 1;
+      padding-bottom: 40px;
+    }
+
+    footer {
+      background-color: #343a40;
+      color: white;
+    }
+
+    footer .container {
+      padding: 20px 0;
     }
   </style>
 </head>
 
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">VAULT GUARD</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -32,6 +61,7 @@
           <li class="nav-item"><a class="nav-link text-white" href="{% url 'index' %}">Home</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="{% url 'product_list' %}">All Products</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="{% url 'cart_view' %}">Cart</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'profile' %}">Profile</a></li>
           {% if user.is_authenticated %}
             <li class="nav-item"><a class="nav-link text-white" href="{% url 'logout' %}">Logout</a></li>
           {% else %}
@@ -43,11 +73,11 @@
   </nav>
 
   <!-- Main Content -->
-  <div class="container">
+  <div class="container main-content mt-5 pt-5">
     <!-- Profile Info -->
     <div class="profile-section mt-4">
       <h2>User Profile</h2>
-      <p><strong>Email:</strong> {{ email }} <a href="{% url 'edit_email' %}">Edit</a></p>
+      <p><strong>Email:</strong> {{ request.user.email }} <a href="{% url 'edit_email' %}">Edit</a></p>
       <p><strong>Username:</strong> {{ request.user.username }} <a href="{% url 'edit_username' %}">Edit</a></p>
     </div>
 
@@ -94,7 +124,7 @@
   </div>
 
   <!-- Footer -->
-  <footer class="bg-dark text-white pt-5 pb-3 mt-5">
+  <footer class="bg-dark text-white pt-5 pb-3">
     <div class="container">
       <div class="row">
         <div class="col-md-3 mb-3">
