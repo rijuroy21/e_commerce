@@ -26,23 +26,18 @@ class Product(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)  # Renamed from 'stock' for clarity
+    quantity = models.PositiveIntegerField(default=1)  
     ordered_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=20,
-        choices=[
-            ('Placed', 'Placed'),
-            ('Confirmed', 'Confirmed'),
-            ('Shipped', 'Shipped'),
-            ('Delivered', 'Delivered'),
-        ],
+        choices=[('Placed', 'Placed'), ('Confirmed', 'Confirmed'), ('Shipped', 'Shipped'), ('Delivered', 'Delivered')],
         default='Placed'
     )
-    delivery_date = models.DateField(default=timezone.localdate)  # ✅ Safe callable default
+    delivery_date = models.DateField(default=timezone.localdate)  
 
     def __str__(self):
         return f"Order by {self.user.username} for {self.product.name}"
-
+    
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -77,5 +72,18 @@ class UserProfile(models.Model):
 
     @classmethod
     def get_or_create_profile(cls, user):
+        # Get or create the profile for the user
         profile, created = cls.objects.get_or_create(user=user)
         return profile
+
+
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=225)
+    address = models.TextField()
+    phone = models.CharField(max_length=12)
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} - {self.address[:30]}"
+

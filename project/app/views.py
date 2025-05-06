@@ -8,13 +8,15 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 import random
-from .models import Product, Cart, CartItem, Order
+from .models import Product, Cart, CartItem, Order,UserProfile
 from django.contrib import auth
 from django.utils import timezone
 import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from .models import Order
+from .models import *
+from .models import Address 
+
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
@@ -445,14 +447,209 @@ def track_order(request):
         except Order.DoesNotExist:
             return render(request, 'order_tracking.html', {'error': 'Order not found'})
         
+
+@login_required
+def user_list(request):
+    if not request.user.is_superuser:
+        return render(request, 'unauthorized.html')
+    users = User.objects.all().order_by('-date_joined')  # <- newest first
+    return render(request, 'user_list.html', {'users': users})
+
+def user_detail(request, user_id):
+    user_obj = User.objects.get(id=user_id)
+    
+    # Use the get_or_create_profile method to retrieve or create the profile for the user
+    profile = UserProfile.get_or_create_profile(user_obj)
+    
+    # Retrieve the addresses and orders for the user
+    addresses = Address.objects.filter(user=user_obj)
+    orders = Order.objects.filter(user=user_obj)
+
+    context = {
+        'user_obj': user_obj,
+        'profile': profile,
+        'addresses': addresses,
+        'orders': orders,
+    }
+
+    return render(request, 'user_detail.html', context)
+
+@login_required
+def delete_user(request, user_id):
+    if not request.user.is_superuser:
+        return render(request, 'unauthorized.html')
+
+    user = get_object_or_404(User, id=user_id)
+    user.delete()
+    messages.success(request, "User deleted successfully.")
+    return redirect('user_list')    
+        
+
+@login_required
+def profile_view(request):
+    addresses = Address.objects.filter(user=request.user)
+    return render(request, 'profile.html', {'addresses': addresses})
+
+@login_required
+def add_address(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '')
+        address = request.POST.get('address', '')
+        phone = request.POST.get('phone', '')
+
+        errors = {}
+        if not name:
+            errors['name'] = 'Name is required.'
+        if not address:
+            errors['address'] = 'Address is required.'
+        if not phone:
+            errors['phone'] = 'Phone number is required.'
+
+        if not errors:
+            Address.objects.create(user=request.user, name=name, address=address, phone=phone)
+            messages.success(request, 'Address added successfully!')
+            return redirect('profile')
+        else:
+            return render(request, 'address_form.html', {
+                'errors': errors,
+                'name': name,
+                'address': address,
+                'phone': phone,
+                'action': 'Add'
+            })
+    return render(request, 'address_form.html', {
+        'action': 'Add',
+        'name': '',
+        'address': '',
+        'phone': '',
+        'errors': {}
+    })
+
+@login_required
+def edit_address(request, address_id):
+    address_obj = get_object_or_404(Address, id=address_id, user=request.user)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '')
+        address = request.POST.get('address', '')
+        phone = request.POST.get('phone', '')
+
+        errors = {}
+        if not name:
+            errors['name'] = 'Name is required.'
+        if not address:
+            errors['address'] = 'Address is required.'
+        if not phone:
+            errors['phone'] = 'Phone number is required.'
+
+        if not errors:
+            address_obj.name = name
+            address_obj.address = address
+            address_obj.phone = phone
+            address_obj.save()
+            messages.success(request, 'Address updated successfully!')
+            return redirect('profile')
+        else:
+            return render(request, 'address_form.html', {
+                'errors': errors,
+                'name': name,
+                'address': address,
+                'phone': phone,
+                'action': 'Edit'
+            })
+
+    return render(request, 'address_form.html', {
+        'name': address_obj.name,
+        'address': address_obj.address,
+        'phone': address_obj.phone,
+        'action': 'Edit',
+        'errors': {}
+    })
+
+@login_required
+def delete_address(request, address_id):
+    address_obj = get_object_or_404(Address, id=address_id, user=request.user)
+    address_obj.delete()
+    messages.success(request, 'Address deleted successfully!')
+    return redirect('profile')
+@login_required
+def edit_email(request):
+    """View to edit user's email"""
+    user = request.user
+    
+    if request.method == 'POST':
+        email = request.POST.get('email', '')
+        
+        # Basic validation
+        errors = {}
+        if not email:
+            errors['email'] = 'Email is required.'
+        elif '@' not in email:
+            errors['email'] = 'Please enter a valid email address.'
+            
+        if not errors:
+            # Update email
+            user.email = email
+            user.save()
+            messages.success(request, 'Email updated successfully!')
+            return redirect('profile')
+        else:
+            # If there are errors, pass them to the template
+            return render(request, 'email.html', {
+                'errors': errors,
+                'email': email
+            })
+    
+    
+    return render(request, 'email.html', {
+        'email': user.email
+    })
+
+@login_required
+def edit_username(request):
+    """View to edit user's username"""
+    user = request.user
+    
+    if request.method == 'POST':
+        username = request.POST.get('username', '')
+        
+        # Basic validation
+        errors = {}
+        if not username:
+            errors['username'] = 'Username is required.'
+        elif len(username) < 4:
+            errors['username'] = 'Username should be at least 4 characters long.'
+        elif User.objects.filter(username=username).exists():
+            errors['username'] = 'This username is already taken.'
+            
+        if not errors:
+            # Update username
+            user.username = username
+            user.save()
+            messages.success(request, 'Username updated successfully!')
+            return redirect('profile')
+        else:
+            # If there are errors, pass them to the template
+            return render(request, 'username.html', {
+                'errors': errors,
+                'username': username
+            })
+    
+    # Pre-fill form with existing username
+    return render(request, 'username.html', {
+        'username': user.username
+    }) 
+
+
 def order_success(request):
     return render(request, 'order_success.html')
+
 
 def category(request):
     return render(request, 'category.html')
 
-def bookings(request):
-    return render(request, 'bookings.html')
+# def bookings(request):
+#     return render(request, 'bookings.html')
 
 def terms(request):
     return render(request, 'terms.html')

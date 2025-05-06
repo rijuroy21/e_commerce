@@ -14,7 +14,7 @@ urlpatterns = [
     path('reset-password/', views.reset_password, name='reset_password'),
     path('', views.index, name='index'),
     path('category/', views.category, name='category'),
-    path('bookings/', views.bookings, name='bookings'),
+    # path('bookings/', views.bookings, name='bookings'),
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
     path('contact/', views.contact, name='contact'),
@@ -39,6 +39,16 @@ urlpatterns = [
     path('payment-successful/', views.payment_successful, name='payment_successful'),
     path('order-tracking/', views.order_tracking, name='order_tracking'),
     path('track-order/', views.track_order, name='track_order'),
+    path('user-list/', views.user_list, name='user_list'),
+    path('user/<int:user_id>/', views.user_detail, name='user_detail'),
+    path('user/<int:user_id>/delete/', views.delete_user, name='delete_user'),
+    path('profile/edit-email/', views.edit_email, name='edit_email'),
+    path('profile/edit-username/', views.edit_username, name='edit_username'),
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/add-address/', views.add_address, name='add_address'),
+    path('profile/edit-address/<int:address_id>/', views.edit_address, name='edit_address'),
+    path('profile/delete-address/<int:address_id>/', views.delete_address, name='delete_address'),
+    
 ]
 
 if settings.DEBUG:
