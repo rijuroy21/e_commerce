@@ -329,11 +329,17 @@ def cart_view(request):
     total_price = sum(item.get_total_price() for item in cart_items)
     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
+
 @login_required(login_url='login')
 def checkout(request):
     cart_items = CartItem.objects.filter(cart__user=request.user)
-    
-    total_price = sum(item.product.offerprice * item.quantity if item.product.offerprice else item.product.price * item.quantity for item in cart_items)
+    addresses = Address.objects.filter(user=request.user)
+
+    total_price = sum(
+        item.product.offerprice * item.quantity if item.product.offerprice
+        else item.product.price * item.quantity
+        for item in cart_items
+    )
 
     if total_price > 0:
         razorpay_order = client.order.create({
@@ -352,6 +358,7 @@ def checkout(request):
         'razorpay_amount': total_price,
         'razorpay_order_id': razorpay_order['id'] if razorpay_order else '',
         'delivery_date': timezone.now() + timezone.timedelta(days=5),
+        'addresses': addresses,  # ✅ Add this
     }
     return render(request, 'checkout.html', context)
 
@@ -484,17 +491,49 @@ def delete_user(request, user_id):
     messages.success(request, "User deleted successfully.")
     return redirect('user_list')    
         
-
-@login_required
 def profile_view(request):
     addresses = Address.objects.filter(user=request.user)
-    return render(request, 'profile.html', {'addresses': addresses})
+    orders = Order.objects.filter(user=request.user)
+
+    editing_address = False
+    address_to_edit = None
+    name = phone = pincode = address = ''
+    errors = {}
+
+    # Check if editing an address
+    address_id = request.GET.get('edit')
+    if address_id:
+        try:
+            address_to_edit = Address.objects.get(id=address_id, user=request.user)
+            editing_address = True
+            name = address_to_edit.name
+            phone = address_to_edit.phone
+            pincode = address_to_edit.pincode
+            address = address_to_edit.address
+        except Address.DoesNotExist:
+            pass
+
+    context = {
+        'addresses': addresses,
+        'orders': orders,
+        'editing_address': editing_address,
+        'address_to_edit': address_to_edit,
+        'name': name,
+        'phone': phone,
+        'pincode': pincode,
+        'address': address,
+        'errors': errors,
+        'action': 'Edit',
+    }
+    return render(request, 'profile.html', context)
+
 
 @login_required
 def add_address(request):
     if request.method == 'POST':
         name = request.POST.get('name', '')
         address = request.POST.get('address', '')
+        pincode = request.POST.get('pincode', '')
         phone = request.POST.get('phone', '')
 
         errors = {}
@@ -502,11 +541,19 @@ def add_address(request):
             errors['name'] = 'Name is required.'
         if not address:
             errors['address'] = 'Address is required.'
+        if not pincode:
+            errors['pincode'] = 'Pincode is required.'
         if not phone:
             errors['phone'] = 'Phone number is required.'
 
         if not errors:
-            Address.objects.create(user=request.user, name=name, address=address, phone=phone)
+            Address.objects.create(
+                user=request.user,
+                name=name,
+                address=address,
+                pincode=pincode,
+                phone=phone
+            )
             messages.success(request, 'Address added successfully!')
             return redirect('profile')
         else:
@@ -514,17 +561,19 @@ def add_address(request):
                 'errors': errors,
                 'name': name,
                 'address': address,
+                'pincode': pincode,
                 'phone': phone,
                 'action': 'Add'
             })
+
     return render(request, 'address_form.html', {
         'action': 'Add',
         'name': '',
         'address': '',
+        'pincode': '',
         'phone': '',
         'errors': {}
     })
-
 @login_required
 def edit_address(request, address_id):
     address_obj = get_object_or_404(Address, id=address_id, user=request.user)
@@ -532,6 +581,7 @@ def edit_address(request, address_id):
     if request.method == 'POST':
         name = request.POST.get('name', '')
         address = request.POST.get('address', '')
+        pincode = request.POST.get('pincode', '')
         phone = request.POST.get('phone', '')
 
         errors = {}
@@ -539,12 +589,15 @@ def edit_address(request, address_id):
             errors['name'] = 'Name is required.'
         if not address:
             errors['address'] = 'Address is required.'
+        if not pincode:
+            errors['pincode'] = 'Pincode is required.'
         if not phone:
             errors['phone'] = 'Phone number is required.'
 
         if not errors:
             address_obj.name = name
             address_obj.address = address
+            address_obj.pincode = pincode
             address_obj.phone = phone
             address_obj.save()
             messages.success(request, 'Address updated successfully!')
@@ -554,6 +607,7 @@ def edit_address(request, address_id):
                 'errors': errors,
                 'name': name,
                 'address': address,
+                'pincode': pincode,
                 'phone': phone,
                 'action': 'Edit'
             })
@@ -561,6 +615,7 @@ def edit_address(request, address_id):
     return render(request, 'address_form.html', {
         'name': address_obj.name,
         'address': address_obj.address,
+        'pincode': address_obj.pincode,
         'phone': address_obj.phone,
         'action': 'Edit',
         'errors': {}
@@ -572,6 +627,7 @@ def delete_address(request, address_id):
     address_obj.delete()
     messages.success(request, 'Address deleted successfully!')
     return redirect('profile')
+
 @login_required
 def edit_email(request):
     """View to edit user's email"""

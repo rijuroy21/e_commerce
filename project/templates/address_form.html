@@ -72,15 +72,19 @@
       <input type="text" name="name" class="form-control" value="{{ name }}">
       <small class="text-danger">{{ errors.name }}</small>
     </div>
-    <div class="form-group">
-      <label>Address</label>
-      <textarea name="address" class="form-control">{{ address }}</textarea>
-      <small class="text-danger">{{ errors.address }}</small>
-    </div>
+    <div class="form-group mb-3">
+      <label>Pincode</label>
+      <input type="text" name="pincode" class="form-control" value="{{ address.pincode }}">
+   </div>
     <div class="form-group">
       <label>Phone</label>
       <input type="text" name="phone" class="form-control" value="{{ phone }}">
       <small class="text-danger">{{ errors.phone }}</small>
+    </div>
+    <div class="form-group">
+      <label>Address</label>
+      <textarea name="address" class="form-control">{{ address }}</textarea>
+      <small class="text-danger">{{ errors.address }}</small>
     </div>
     <button type="submit" class="btn btn-primary mt-3">{{ action }}</button>
     <a href="{% url 'profile' %}" class="btn btn-secondary mt-3">Cancel</a>

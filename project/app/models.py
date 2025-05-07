@@ -81,6 +81,7 @@ class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=225)
     address = models.TextField()
+    pincode = models.CharField(max_length=6)
     phone = models.CharField(max_length=12)
     is_default = models.BooleanField(default=False)
 
