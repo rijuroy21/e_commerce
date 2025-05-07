@@ -362,6 +362,7 @@ def checkout(request):
     }
     return render(request, 'checkout.html', context)
 
+
 @csrf_exempt
 def process_checkout(request):
     if request.method == 'POST':
@@ -371,39 +372,53 @@ def process_checkout(request):
         address = request.POST.get('address')
         address_type = request.POST.get('address_type')
         payment_method = request.POST.get('payment_method')
-        razorpay_payment_id = request.POST.get('razorpay_payment_id')
+        razorpay_payment_id = request.POST.get('razorpay_payment_id', '')
 
-        cart_items = CartItem.objects.filter(user=request.user)
+        # Retrieve cart items for the logged-in user
+        cart_items = CartItem.objects.filter(cart__user=request.user)
+        
+        # Check if the cart is empty
+        if not cart_items.exists():
+            return redirect('cart_empty')  # redirect to a cart empty page or error page
+        
         total_price = sum(item.product.offerprice * item.quantity for item in cart_items)
 
+        # Create the order first
         order = Order.objects.create(
             user=request.user,
-            name=name,
-            phone=phone,
-            pincode=pincode,
-            address=address,
-            address_type=address_type,
+            status='Paid' if payment_method == 'razorpay' else 'Pending',
             payment_method=payment_method,
             total_price=total_price,
-            status='Paid' if razorpay_payment_id else 'Pending',
-            razorpay_payment_id=razorpay_payment_id
+            razorpay_payment_id=razorpay_payment_id if payment_method == 'razorpay' else '',
         )
 
+        # Add order items (loop through cart items and create an OrderItem for each)
         for cart_item in cart_items:
+            # Ensure product is assigned correctly
+            if not cart_item.product:
+                raise ValueError(f"CartItem with ID {cart_item.id} has no associated product.")
+
+            # Create the OrderItem and assign the correct product
             OrderItem.objects.create(
                 order=order,
-                product=cart_item.product,
+                product=cart_item.product,  # Ensure this is properly referenced
                 quantity=cart_item.quantity,
                 price=cart_item.product.offerprice
             )
+            
+            # Decrease product stock
             cart_item.product.stock -= cart_item.quantity
             cart_item.product.save()
 
+        # Clear the cart after processing the order
         cart_items.delete()
 
-        return redirect('order_success')
+        # Redirect to success page
+        return redirect('payment_successful')
 
     return redirect('checkout')
+
+
 
 @login_required(login_url='login')
 def update_quantity(request, product_id):
