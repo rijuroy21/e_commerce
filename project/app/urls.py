@@ -5,7 +5,6 @@ from django.conf.urls.static import static
 from app import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -14,7 +13,9 @@ urlpatterns = [
     path('reset-password/', views.reset_password, name='reset_password'),
     path('', views.index, name='index'),
     path('category/', views.category, name='category'),
-    # path('bookings/', views.bookings, name='bookings'),
+    path('order/<int:order_id>/', views.order_detail_view, name='order_detail'),
+    path('dashboard/bookings/', views.admin_bookings, name='admin_bookings'),
+    path('dashboard/confirm-order/<int:order_id>/', views.confirm_order, name='confirm_order'),
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
     path('contact/', views.contact, name='contact'),

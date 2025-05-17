@@ -3,7 +3,7 @@
 <html>
 <head>
     <title>User List</title>
-    <link rel="stylesheet" href="{% static 'css/firstpage.css' %}">
+    <link rel="stylesheet" href="{% static 'css/user_list.css' %}">
 </head>
 <body>
 <div class="sidebar">
@@ -11,6 +11,7 @@
     <nav class="sidebar-nav">
         <a href="{% url 'firstpage' %}">Home</a>
         <a href="{% url 'add_product' %}">Add Product</a>
+        <a href="{% url 'admin_bookings' %}"> Bookings</a>
         <a href="{% url 'user_list' %}">User List</a>
         <a href="{% url 'logout' %}">Logout</a>
     </nav>
