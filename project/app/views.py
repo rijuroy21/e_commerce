@@ -370,19 +370,22 @@ def process_checkout(request):
         payment_method = request.POST.get('payment_method')
         razorpay_payment_id = request.POST.get('razorpay_payment_id', '')
 
-        # Retrieve cart items for the logged-in user
+        # Retrieve cart items for the user
         cart_items = CartItem.objects.filter(cart__user=request.user)
 
-        # Check if the cart is empty
+        # Redirect if cart is empty
         if not cart_items.exists():
             return redirect('cart_empty')
 
-        total_price = sum(item.product.offerprice * item.quantity for item in cart_items)
+        # Calculate total price using offerprice if available
+        total_price = sum(
+            (item.product.offerprice or item.product.price) * item.quantity for item in cart_items
+        )
 
-        # Get the selected billing address
+        # Get selected address
         selected_address = get_object_or_404(Address, id=address_id, user=request.user)
 
-        # Create the order
+        # Create order
         order = Order.objects.create(
             user=request.user,
             name=selected_address.name,
@@ -396,23 +399,20 @@ def process_checkout(request):
             status='Paid' if payment_method == 'razorpay' else 'Pending'
         )
 
-        # Add order items and update stock
+        # Create order items and update stock
         for cart_item in cart_items:
-            if not cart_item.product:
-                raise ValueError(f"CartItem with ID {cart_item.id} has no associated product.")
-
             OrderItem.objects.create(
                 order=order,
                 product=cart_item.product,
                 quantity=cart_item.quantity,
-                price=cart_item.product.offerprice
+                price=(cart_item.product.offerprice or cart_item.product.price)
             )
 
             # Update stock
             cart_item.product.stock -= cart_item.quantity
             cart_item.product.save()
 
-        # Clear the cart
+        # Clear cart after checkout
         cart_items.delete()
 
         return redirect('payment_successful')
@@ -510,9 +510,15 @@ def delete_user(request, user_id):
     messages.success(request, "User deleted successfully.")
     return redirect('user_list')    
         
+
+@login_required
 def profile_view(request):
     addresses = Address.objects.filter(user=request.user)
     orders = Order.objects.filter(user=request.user)
+
+    # Calculate delivery date for each order
+    for order in orders:
+        order.delivery_date = order.created_at + timedelta(days=5)
 
     editing_address = False
     address_to_edit = None

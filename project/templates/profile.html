@@ -19,7 +19,6 @@
 
     body {
       padding-top: 80px;
-      /* Space for fixed navbar */
     }
 
     .navbar {
@@ -86,7 +85,7 @@
     <!-- Address Info -->
     <div class="container mt-5">
       <h3>Addresses</h3>
-    
+
       {% if editing_address %}
       <h5 class="mt-4">{{ action }} Address</h5>
       <form method="post" action="{% url 'edit_address' address_to_edit.id %}">
@@ -134,69 +133,86 @@
       {% endif %}
       {% endif %}
     </div>
-    
-
     <!-- Order History -->
     <div class="order-history-section mt-5">
       <h3>Order History</h3>
       {% if orders %}
-      <ul class="list-group">
-        {% for order in orders %}
-        <li class="list-group-item">
-          <strong>Order ID:</strong> {{ order.id }}<br />
-          <strong>Date:</strong> {{ order.date_ordered|date:"M d, Y H:i" }}<br />
-          <strong>Status:</strong> {{ order.status }}<br />
-          <strong>Total:</strong> ₹{{ order.total_price }}<br />
-          <a href="{% url 'order_detail' order.id %}">View Details</a>
-        </li>
-        {% endfor %}
-      </ul>
+      {% for order in orders %}
+      <div class="card shadow-sm mb-4">
+        <ul class="list-group list-group-flush">
+          {% for item in order.items.all %}
+          <li class="list-group-item d-flex align-items-center gap-3">
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail"
+              style="width: 80px;">
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{ item.product.name }}</h6>
+              <p class="mb-1">Price: ₹
+                {% if item.product.offerprice %}
+                {{ item.product.offerprice }}
+                {% else %}
+                {{ item.product.price }}
+                {% endif %}
+              </p>
+              <p class="mb-1">Quantity: {{ item.quantity }}</p>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="card-footer">
+          <p class="mb-1"><strong>Status:</strong> {{ order.status }}</p>
+          <p class="mb-1"><strong>Total:</strong> ₹{{ order.total_price }}</p>
+          <p class="mb-1"><strong>Order Date:</strong> {{ order.created_at|date:"D, M d, Y" }}</p>
+          <p class="mb-1"><strong>Estimated Delivery by:</strong> {{ order.delivery_date|date:"D, M d, Y" }}</p>
+        </div>
+      </div>
+      {% endfor %}
       {% else %}
       <p>You have not placed any orders yet.</p>
       {% endif %}
     </div>
   </div>
-
-  <!-- Footer -->
-  <footer class="bg-dark text-white pt-5 pb-3">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-3 mb-3">
-          <h5>About Us</h5>
-          <p>Your trusted source for top-of-the-line home security products.</p>
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-5 pb-3">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <h5>About Us</h5>
+            <p>Your trusted source for top-of-the-line home security products.</p>
+          </div>
+          <div class="col-md-3 mb-3">
+            <h5>Quick Links</h5>
+            <ul class="list-unstyled">
+              <li><a href="/" class="text-white text-decoration-none">Home</a></li>
+              <li>Contact Us</li>
+              <li>Privacy Policy</li>
+              <li>Terms & Conditions</li>
+            </ul>
+          </div>
+          <div class="col-md-3 mb-3">
+            <h5>Contact Us</h5>
+            <p>Email: support@homesecurity.com</p>
+            <p>Phone: 1-800-123-4567</p>
+          </div>
+          <div class="col-md-3 mb-3">
+            <h5>Follow Us</h5>
+            <ul class="list-unstyled">
+              <li><a href="https://facebook.com/homesecurity" class="text-white text-decoration-none">Facebook</a></li>
+              <li><a href="https://twitter.com/homesecurity" class="text-white text-decoration-none">Twitter</a></li>
+              <li><a href="https://instagram.com/homesecurity" class="text-white text-decoration-none">Instagram</a>
+              </li>
+              <li><a href="https://linkedin.com/company/homesecurity"
+                  class="text-white text-decoration-none">LinkedIn</a>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div class="col-md-3 mb-3">
-          <h5>Quick Links</h5>
-          <ul class="list-unstyled">
-            <li><a href="/" class="text-white text-decoration-none">Home</a></li>
-            <li>Contact Us</li>
-            <li>Privacy Policy</li>
-            <li>Terms & Conditions</li>
-          </ul>
-        </div>
-        <div class="col-md-3 mb-3">
-          <h5>Contact Us</h5>
-          <p>Email: support@homesecurity.com</p>
-          <p>Phone: 1-800-123-4567</p>
-        </div>
-        <div class="col-md-3 mb-3">
-          <h5>Follow Us</h5>
-          <ul class="list-unstyled">
-            <li><a href="https://facebook.com/homesecurity" class="text-white text-decoration-none">Facebook</a></li>
-            <li><a href="https://twitter.com/homesecurity" class="text-white text-decoration-none">Twitter</a></li>
-            <li><a href="https://instagram.com/homesecurity" class="text-white text-decoration-none">Instagram</a></li>
-            <li><a href="https://linkedin.com/company/homesecurity" class="text-white text-decoration-none">LinkedIn</a>
-            </li>
-          </ul>
+        <div class="text-center mt-4">
+          <p class="mb-0">© 2025 HomeSecurity.com | All Rights Reserved</p>
         </div>
       </div>
-      <div class="text-center mt-4">
-        <p class="mb-0">&copy; 2025 HomeSecurity.com | All Rights Reserved</p>
-      </div>
-    </div>
-  </footer>
+    </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
