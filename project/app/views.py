@@ -16,12 +16,13 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from .models import *
 from .models import Address
+from razorpay.errors import BadRequestError, ServerError, GatewayError
 
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 def index(request):
-    products = Product.objects.all().order_by('-id')[:10]
+    products = Product.objects.all().order_by('-id')[:8]
     return render(request, "index.html", {"products": products})
 def product(request, id):
     product = get_object_or_404(Product, id=id)
@@ -312,22 +313,31 @@ def remove_from_cart(request, product_id):
     except Cart.DoesNotExist:
         pass
     return redirect('checkout')
-
 @login_required(login_url='login')
 def delete_cart_item(request, id):
     cart_item = get_object_or_404(CartItem, id=id, cart__user=request.user)
     cart_item.product.stock += cart_item.quantity
     cart_item.product.save()
     cart_item.delete()
-    messages.success(request, "Item removed from cart.")
-    return redirect('cart_view')
+    messages.success(request, 'Item removed.')
+    return redirect('checkout') 
 
+# views.py (updated cart_view)
 @login_required(login_url='login')
 def cart_view(request):
     cart = Cart.objects.filter(user=request.user).first()
     cart_items = cart.items.all() if cart else []
-    total_price = sum(item.get_total_price() for item in cart_items)
-    return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
+    total_price = sum(item.get_total_price() for item in cart_items)  # Now uses offerprice
+    # Prepare cart items with subtotals for the template
+    cart_items_with_subtotals = [
+        {'item': item, 'subtotal': item.get_total_price()}
+        for item in cart_items
+    ]
+    return render(request, 'cart.html', {
+        'cart_items_with_subtotals': cart_items_with_subtotals,
+        'total_price': total_price
+    })
+
 
 
 @login_required(login_url='login')
@@ -341,14 +351,30 @@ def checkout(request):
         for item in cart_items
     )
 
+    if total_price <= 0:
+        messages.error(request, "Invalid cart total. Please check your cart and try again.")
+        return redirect('cart_view')
+
+    razorpay_order = None
     if total_price > 0:
-        razorpay_order = client.order.create({
-            "amount": int(total_price * 100),
-            "currency": "INR",
-            "payment_capture": "1"
-        })
-    else:
-        razorpay_order = None
+        try:
+            razorpay_order = client.order.create({
+                "amount": int(total_price * 100),
+                "currency": "INR",
+                "payment_capture": "1"
+            })
+        except BadRequestError:
+            messages.error(request, "Invalid request to payment gateway. Please try again later.")
+            return redirect('cart_view')
+        except ServerError:
+            messages.error(request, "Payment gateway server error. Please try again later.")
+            return redirect('cart_view')
+        except GatewayError:
+            messages.error(request, "Payment gateway error. Please try again later.")
+            return redirect('cart_view')
+        except Exception:
+            messages.error(request, "An unexpected error occurred. Please try again later.")
+            return redirect('cart_view')
 
     context = {
         'cart_items': cart_items,
@@ -358,34 +384,41 @@ def checkout(request):
         'razorpay_amount': total_price,
         'razorpay_order_id': razorpay_order['id'] if razorpay_order else '',
         'delivery_date': timezone.now() + timezone.timedelta(days=5),
-        'addresses': addresses,  # ✅ Add this
+        'addresses': addresses,
     }
     return render(request, 'checkout.html', context)
-
-
 @csrf_exempt
+@login_required(login_url='login')
 def process_checkout(request):
     if request.method == 'POST':
         address_id = request.POST.get('billing_address')
         payment_method = request.POST.get('payment_method')
         razorpay_payment_id = request.POST.get('razorpay_payment_id', '')
-
-        # Retrieve cart items for the user
         cart_items = CartItem.objects.filter(cart__user=request.user)
-
-        # Redirect if cart is empty
+        
         if not cart_items.exists():
-            return redirect('cart_empty')
+            messages.error(request, 'Your cart is empty.')
+            return redirect('cart_view')
+        
+        if not address_id:
+            messages.error(request, 'Please select a billing address.')
+            return redirect('checkout')
+
+        # Validate stock for all items before proceeding
+        for cart_item in cart_items:
+            if cart_item.product.stock < cart_item.quantity:
+                messages.error(request, f'Insufficient stock for {cart_item.product.name}. Only {cart_item.product.stock} items left.')
+                return redirect('checkout')
+
+        # Get selected address
+        selected_address = get_object_or_404(Address, id=address_id, user=request.user)
 
         # Calculate total price using offerprice if available
         total_price = sum(
             (item.product.offerprice or item.product.price) * item.quantity for item in cart_items
         )
 
-        # Get selected address
-        selected_address = get_object_or_404(Address, id=address_id, user=request.user)
-
-        # Create order
+        # Create order with status "Pending" for all payment methods
         order = Order.objects.create(
             user=request.user,
             name=selected_address.name,
@@ -396,10 +429,10 @@ def process_checkout(request):
             payment_method=payment_method,
             total_price=total_price,
             razorpay_payment_id=razorpay_payment_id if payment_method == 'razorpay' else '',
-            status='Paid' if payment_method == 'razorpay' else 'Pending'
+            status='Pending'  # Always set to "Pending"
         )
 
-        # Create order items and update stock
+        # Create order items
         for cart_item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -407,10 +440,6 @@ def process_checkout(request):
                 quantity=cart_item.quantity,
                 price=(cart_item.product.offerprice or cart_item.product.price)
             )
-
-            # Update stock
-            cart_item.product.stock -= cart_item.quantity
-            cart_item.product.save()
 
         # Clear cart after checkout
         cart_items.delete()
@@ -447,9 +476,16 @@ def update_quantity(request, product_id):
 
     return redirect('checkout')
 
+@login_required(login_url='login')
 def payment_successful(request):
-    print("Payment Successful view is called")
-    return render(request, 'payment_successful.html')
+    if request.user.is_superuser:
+        return redirect('admin_bookings')
+    # Get the latest order for the user
+    order = Order.objects.filter(user=request.user).order_by('-created_at').first()
+    if not order:
+        messages.error(request, 'No recent order found.')
+        return redirect('index')
+    return render(request, 'payment_successful.html', {'order': order})
 
 def order_tracking(request):
     return render(request, 'order_tracking.html')
@@ -733,20 +769,31 @@ def admin_bookings(request):
 
 @login_required(login_url='login')
 def confirm_order(request, order_id):
+    # Ensure only admins can access this view
     if not request.user.is_superuser:
-        return render(request, 'unauthorized.html')
+        messages.error(request, "You do not have permission to perform this action.")
+        return redirect('index')
+
     order = get_object_or_404(Order, id=order_id)
-    if request.method == 'POST' and order.status == 'Pending':
-        order.status = 'Confirmed'
-        order.save()
-        messages.success(request, f"Order #{order_id} confirmed successfully.")
+    
+    if request.method == 'POST':
+        if order.status == 'Pending':
+            order.status = 'Confirmed'
+            order.save()
+            messages.success(request, f"Order #{order.id} has been confirmed.")
+        else:
+            messages.error(request, f"Order #{order.id} cannot be confirmed as it is already {order.status}.")
+    
     return redirect('admin_bookings')
 
-@login_required(login_url='login')
 def payment_successful(request):
-    if request.user.is_superuser:
-        return redirect('admin_bookings')  # Admins go to bookings page
     return render(request, 'payment_successful.html')
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    if request.method == "POST":
+        order.delete()
+    return redirect('profile')
 
 def order_success(request):
     return render(request, 'order_success.html')

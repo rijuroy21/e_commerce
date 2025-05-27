@@ -16,9 +16,11 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+
         .btn-blue:hover {
             background-color: #0056b3;
         }
+
         .btn-gray {
             background-color: #6c757d;
             color: white;
@@ -27,30 +29,37 @@
             border-radius: 4px;
             cursor: not-allowed;
         }
+
         .message {
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 4px;
         }
+
         .message-success {
             background-color: #d4edda;
             color: #155724;
         }
+
         .message-error {
             background-color: #f8d7da;
             color: #721c24;
         }
-        .order-table th, .order-table td {
+
+        .order-table th,
+        .order-table td {
             padding: 12px;
             text-align: left;
             vertical-align: middle;
         }
+
         .product-item {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 8px;
         }
+
         .product-item img {
             width: 50px;
             height: 50px;
@@ -61,79 +70,76 @@
 </head>
 <body>
 
-<div class="sidebar">
-    <h2 class="brand">VAULTGUARD</h2>
-    <nav class="sidebar-nav">
-        <a href="{% url 'firstpage' %}">Home</a>
-        <a href="{% url 'add_product' %}">Add Product</a>
-        <a href="{% url 'admin_bookings' %}">Bookings</a>
-        <a href="{% url 'user_list' %}">User List</a>
-        <a href="{% url 'logout' %}">Logout</a>
-    </nav>
-</div>
-
-<div class="main-content">
-    <section class="section-title">All Orders</section>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="message message-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
-    <div class="table-wrapper">
-        <table class="order-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User</th>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Payment</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                    <th>Delivery Date</th>
-                    <th>Products</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.id }}</td>
-                    <td>{{ order.user.username }}</td>
-                    <td>{{ order.name }}</td>
-                    <td>{{ order.phone }}</td>
-                    <td>{{ order.address }}</td>
-                    <td>{{ order.payment_method|title }}</td>
-                    <td>{{ order.status }}</td>
-                    <td>₹{{ order.total_price }}</td>
-                    <td>{{ order.delivery_date|date:"D, M d, Y" }}</td>
-                    <td>
-                        {% for item in order.items.all %}
-                        <div class="product-item" title="Price: ₹{{ item.price }} x {{ item.quantity }}&#013;Description: {{ item.product.description }}">
-                            <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" alt="{{ item.product.name }}">
-                            <span>{{ item.product.name }}</span>
-                        </div>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% if order.status == "Pending" %}
-                        <form method="POST" action="{% url 'confirm_order' order.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-blue">Confirm</button>
-                        </form>
-                        {% else %}
-                        <button class="btn btn-gray" disabled>Confirmed</button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="sidebar">
+        <h2 class="brand">VAULTGUARD</h2>
+        <nav class="sidebar-nav">
+            <a href="{% url 'firstpage' %}">Home</a>
+            <a href="{% url 'add_product' %}">Add Product</a>
+            <a href="{% url 'admin_bookings' %}">Bookings</a>
+            <a href="{% url 'user_list' %}">User List</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </nav>
     </div>
-</div>
+
+    <div class="main-content">
+        <section class="section-title">All Orders</section>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message message-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="table-wrapper">
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Payment</th>
+                        <th>Total</th>
+                        <th>Delivery</th>
+                        <th>Products</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.user.username }}</td>
+                        <td>{{ order.payment_method|title }}</td>
+                        <td>₹{{ order.total_price }}</td>
+                        <td>
+                            <small class="text-muted">
+                             {{ order.delivery_date|date:"D, M d, Y" }}
+                            </small>
+                        </td>
+                        <td>
+                            {% for item in order.items.all %}
+                            <div class="product-item"
+                                title="Price: ₹{{ item.price }} x {{ item.quantity }}&#013;Description: {{ item.product.description }}">
+                                <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}"
+                                    alt="{{ item.product.name }}">
+                                <span>{{ item.product.name }}</span>
+                            </div>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if order.status == "Pending" %}
+                            <form method="POST" action="{% url 'confirm_order' order.id %}">{% csrf_token %}
+                                <button type="submit" class="btn btn-blue">Confirm</button>
+                            </form>
+                            {% else %}
+                            <button class="btn btn-gray" disabled>Confirmed</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
 </body>
 </html>

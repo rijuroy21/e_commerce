@@ -41,7 +41,8 @@ class CartItem(models.Model):
         return f"{self.quantity} of {self.product.name}"
 
     def get_total_price(self):
-        return self.product.price * self.quantity
+        price_to_use = self.product.offerprice if self.product.offerprice is not None else self.product.price
+        return price_to_use * self.quantity
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -68,16 +69,24 @@ class Address(models.Model):
         return f"{self.name} - {self.address[:30]}"
 
 class Order(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Confirmed', 'Confirmed'),
+        ('Shipped', 'Shipped'),
+        ('Delivered', 'Delivered'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=15)
     pincode = models.CharField(max_length=10)
     address = models.TextField()
-    address_type = models.CharField(max_length=50, blank=True, null=True)
+    address_type = models.CharField(max_length=10)
     payment_method = models.CharField(max_length=20)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
-    status = models.CharField(max_length=20, default='Pending')
+    total_price = models.FloatField()
+    razorpay_payment_id = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

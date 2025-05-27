@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,6 +22,22 @@
         }
         body {
             padding-top: 50px;
+        }
+        .message-container {
+            margin-bottom: 1rem;
+        }
+        .message {
+            font-size: 0.95rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -183,7 +198,7 @@
                 </div>
             </div>
             <div class="text-center mt-4">
-                <p class="mb-0">&copy; 2025 HomeSecurity.com | All Rights Reserved</p>
+                <p class="mb-0">© 2025 HomeSecurity.com | All Rights Reserved</p>
             </div>
         </div>
     </footer>

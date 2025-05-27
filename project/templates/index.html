@@ -2,28 +2,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Vault Guard</title>
-  <link rel="stylesheet" href="{% static 'css/index.css' %}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/index.css' %}" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     body {
-      padding-top: 50px; 
+      padding-top: 50px;
+      background-color: #f8f9fa;
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #212529;
+    }
+    .icon-circle {
+      width: 80px;
+      height: 80px;
+      background-color: #0d6efd;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2.5rem;
+      margin: 0 auto 15px;
+    }
+    .gallery-img {
+      object-fit: cover;
+      height: 200px;
+      width: 100%;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+    .gallery-img:hover {
+      transform: scale(1.05);
+    }
+    .offer-card {
+      border: none;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+      transition: box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    .offer-card:hover {
+      box-shadow: 0 6px 18px rgb(0 0 0 / 0.15);
+    }
+    .commitment-card {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
     }
   </style>
 </head>
 
 <body>
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 fixed-top">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">VAULT GUARD</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
         <form class="d-flex me-auto" method="GET" action="{% url 'search_results' %}">
-          <input class="form-control me-2" type="text" name="q" placeholder="Search products..." required>
+          <input
+            class="form-control me-2"
+            type="text"
+            name="q"
+            placeholder="Search products..."
+            required
+          />
           <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
         <ul class="navbar-nav ms-3 gap-2">
@@ -32,47 +93,100 @@
           <li class="nav-item"><a class="nav-link text-white" href="{% url 'cart_view' %}">Cart</a></li>
           <li class="nav-item"><a class="nav-link text-white" href="{% url 'profile' %}">Profile</a></li>
           {% if user.is_authenticated %}
-            <li class="nav-item"><a class="nav-link text-white" href="{% url 'logout' %}">Logout</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'logout' %}">Logout</a></li>
           {% else %}
-            <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Login</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{% url 'login' %}">Login</a></li>
           {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
+  <!-- Carousel -->
   <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
-      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-      <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      <button
+        type="button"
+        data-bs-target="#mainCarousel"
+        data-bs-slide-to="0"
+        class="active"
+        aria-current="true"
+        aria-label="Slide 1"
+      ></button>
+      <button
+        type="button"
+        data-bs-target="#mainCarousel"
+        data-bs-slide-to="1"
+        aria-label="Slide 2"
+      ></button>
+      <button
+        type="button"
+        data-bs-target="#mainCarousel"
+        data-bs-slide-to="2"
+        aria-label="Slide 3"
+      ></button>
     </div>
     <div class="carousel-inner">
       <div class="carousel-item active">
-        <img src="{% static 'images/bnr1.jpg' %}" class="d-block w-100" alt="Home security system banner 1">
+        <img
+          src="{% static 'images/bnr1.jpg' %}"
+          class="d-block w-100"
+          alt="Home security system banner 1"
+        />
       </div>
       <div class="carousel-item">
-        <img src="{% static 'images/bnr2.jpg' %}" class="d-block w-100" alt="Home security system banner 2">
+        <img
+          src="{% static 'images/bnr2.jpg' %}"
+          class="d-block w-100"
+          alt="Home security system banner 2"
+        />
       </div>
       <div class="carousel-item">
-        <img src="{% static 'images/bnr3.jpg' %}" class="d-block w-100" alt="Home security system banner 3">
+        <img
+          src="{% static 'images/bnr3.jpg' %}"
+          class="d-block w-100"
+          alt="Home security system banner 3"
+        />
       </div>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev" aria-label="Previous Slide">
+    <button
+      class="carousel-control-prev"
+      type="button"
+      data-bs-target="#mainCarousel"
+      data-bs-slide="prev"
+      aria-label="Previous Slide"
+    >
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
     </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next" aria-label="Next Slide">
+    <button
+      class="carousel-control-next"
+      type="button"
+      data-bs-target="#mainCarousel"
+      data-bs-slide="next"
+      aria-label="Next Slide"
+    >
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
     </button>
   </div>
 
-  <div class="products-container container my-5">
+
+  <!-- Featured Products -->
+  <section class="products-container container my-5">
+    <h2 class="section-title">Featured Products</h2>
+    <div class="text-center mb-4">
+      <a href="{% url 'product_list' %}" class="btn btn-outline-primary">Show more »</a>
+    </div>
     <div class="row g-4">
       {% for product in products %}
       <div class="col-sm-6 col-md-4 col-lg-3">
-        <div class="card h-100 text-center">
+        <div class="card h-100 text-center shadow-sm">
           <a href="{% url 'product' product.id %}">
-            <img src="{{ product.image.url }}" class="card-img-top" alt="Image of {{ product.name }}">
+            <img
+              src="{{ product.image.url }}"
+              class="card-img-top"
+              alt="Image of {{ product.name }}"
+              style="height: 220px; object-fit: contain;"
+            />
           </a>
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">{{ product.name }}</h5>
@@ -80,17 +194,204 @@
               <del>₹{{ product.price }}</del>
               <strong class="text-danger">₹{{ product.offerprice }}</strong>
             </p>
-            <a href="{% url 'product' product.id %}" class="btn btn-outline-primary mt-auto">View Details</a>
+            <a href="{% url 'product' product.id %}" class="btn btn-outline-primary mt-auto"
+              >View Details</a
+            >
           </div>
         </div>
       </div>
       {% endfor %}
-      <div class="col-sm-6 col-md-4 col-lg-3 d-flex align-items-center justify-content-end">
-        <a href="{% url 'product_list' %}" class="btn btn-secondary w-100">View All Products &raquo;</a>
+    </div>
+  </section>
+
+  
+  <!-- Why Choose Vault Guard? -->
+  <section class="container my-5">
+    <h2 class="section-title">Why Choose Vault Guard?</h2>
+    <div class="row text-center g-4">
+      <div class="col-md-4">
+        <div class="icon-circle">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <h5>Top-notch Security</h5>
+        <p>Advanced home security products designed for your peace of mind.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="icon-circle">
+          <i class="bi bi-truck"></i>
+        </div>
+        <h5>Fast & Reliable Delivery</h5>
+        <p>Get your products delivered swiftly and securely.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="icon-circle">
+          <i class="bi bi-people"></i>
+        </div>
+        <h5>Excellent Customer Support</h5>
+        <p>We are here 24/7 to help you with any concerns or queries.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Solutions Gallery -->
+  <section class="container my-5">
+    <h2 class="section-title">Security Solutions Gallery</h2>
+    <div class="row g-3">
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <img
+          src="{% static 'images/photo-1549109926-58f039549485.avif' %}"
+          alt="Security Camera"
+          class="gallery-img shadow-sm"
+        />
+      </div>
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <img
+          src="{% static 'images/KeypadInUse_1332x.webp' %}"
+          alt="Alarm System"
+          class="gallery-img shadow-sm"
+        />
+      </div>
+
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <img
+          src="{% static 'images/bigstock-Motion-Sensor-Or-Detector-For-135350135-1.jpg' %}"
+          alt="Motion Sensor"
+          class="gallery-img shadow-sm"
+        />
+      </div>
+
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <img
+          src="{% static 'images/what-is-a-smart-lock-how-do-smart-locks-work.webp' %}"
+          alt="Smart Lock"
+          class="gallery-img shadow-sm"
+        />
+      </div>
+      
+    </div>
+  </section>
+  
+  <!-- Our Commitment to Security -->
+ <section class="commitment-section full-width-section">
+  <div class="container-fluid">
+    <h2 class="section-title">Our Commitment to Security</h2>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="commitment-card text-center">
+          <div class="icon-circle mb-3">
+            <i class="bi bi-tools"></i>
+          </div>
+          <h5>Expert Installation & Maintenance</h5>
+          <p>Our certified technicians ensure professional installation and ongoing maintenance, keeping your security systems at peak performance for ultimate peace of mind.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="commitment-card text-center">
+          <div class="icon-circle mb-3">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <h5>Proven Product Reliability</h5>
+          <p>Our products undergo rigorous testing to deliver unmatched durability and performance, trusted by thousands of homeowners across the country.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="commitment-card text-center">
+          <div class="icon-circle mb-3">
+            <i class="bi bi-clock"></i>
+          </div>
+          <h5>24/7 Monitoring Services</h5>
+          <p>Stay protected around the clock with our optional monitoring plans, featuring real-time alerts and rapid response from our security experts.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="commitment-card text-center">
+          <div class="icon-circle mb-3">
+            <i class="bi bi-house-check"></i>
+          </div>
+          <h5>Free Security Consultation</h5>
+          <p>Not sure where to start? Schedule a free consultation with our experts to design a personalized security solution for your home.</p>
+        </div>
       </div>
     </div>
   </div>
+</section><br><br>
 
+<section class="full-width-section news-offers-section">
+  <div class="container-fluid">
+    <h2 class="section-title">Latest News & Offers</h2>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="card offer-card">
+          <img
+            src="{% static 'images/ultralock.webp' %}"
+            class="card-img-top"
+            alt="New product launch"
+            style="height: 180px; object-fit: cover"
+          />
+          <div class="card-body">
+            <h5 class="card-title">New Smart Lock Launch</h5>
+            <p class="card-text">
+              Discover our latest smart lock with enhanced security features and easy remote access.
+            </p>
+            <a href="#" class="btn btn-primary btn-sm">Read More</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="card offer-card">
+          <img
+            src="{% static 'images/8wo9wphilps.jpg' %}"
+            class="card-img-top"
+            alt="Summer Sale"
+            style="height: 180px; object-fit: cover"
+          />
+          <div class="card-body">
+            <h5 class="card-title">Summer Sale - Up to 30% Off</h5>
+            <p class="card-text">
+              Upgrade your home security with special discounts on select products this summer.
+            </p>
+            <a href="#" class="btn btn-primary btn-sm">Shop Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="card offer-card">
+          <img
+            src="{% static 'images/roles_and_responsibilities_of_customer_support_executive.webp' %}"
+            class="card-img-top"
+            alt="Customer Support"
+            style="height: 180px; object-fit: cover"
+          />
+          <div class="card-body">
+            <h5 class="card-title">24/7 Customer Support</h5>
+            <p class="card-text">
+              We’re here to assist you anytime, anywhere for a seamless shopping experience.
+            </p>
+            <a href="#" class="btn btn-primary btn-sm">Contact Us</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="card offer-card">
+          <img
+            src="{% static 'images/best-systems-page-3.jpg' %}"
+            class="card-img-top"
+            alt="Exclusive Security Bundle"
+            style="height: 180px; object-fit: cover"
+          />
+          <div class="card-body">
+            <h5 class="card-title">Exclusive Security Bundle</h5>
+            <p class="card-text">
+              Get our premium security bundle, including a smart lock, camera, and motion sensor, at a special price.
+            </p>
+            <a href="#" class="btn btn-primary btn-sm">Explore Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+  <!-- Footer -->
   <footer class="bg-dark text-white pt-5 pb-3 mt-5">
     <div class="container">
       <div class="row">
@@ -115,19 +416,47 @@
         <div class="col-md-3 mb-3">
           <h5>Follow Us</h5>
           <ul class="list-unstyled">
-            <li><a href="https://facebook.com/homesecurity" class="text-white text-decoration-none">Facebook</a></li>
-            <li><a href="https://twitter.com/homesecurity" class="text-white text-decoration-none">Twitter</a></li>
-            <li><a href="https://instagram.com/homesecurity" class="text-white text-decoration-none">Instagram</a></li>
-            <li><a href="https://linkedin.com/company/homesecurity" class="text-white text-decoration-none">LinkedIn</a></li>
+            <li>
+              <a
+                href="https://facebook.com/homesecurity"
+                class="text-white text-decoration-none"
+                >Facebook</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://twitter.com/homesecurity"
+                class="text-white text-decoration-none"
+                >Twitter</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://instagram.com/homesecurity"
+                class="text-white text-decoration-none"
+                >Instagram</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://linkedin.com/company/homesecurity"
+                class="text-white text-decoration-none"
+                >LinkedIn</a
+              >
+            </li>
           </ul>
         </div>
       </div>
       <div class="text-center mt-4">
-        <p class="mb-0">&copy; 2025 HomeSecurity.com | All Rights Reserved</p>
+        <p class="mb-0">© 2025 HomeSecurity.com | All Rights Reserved</p>
       </div>
     </div>
   </footer>
 
+  <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Bootstrap Icons CDN for icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
 </body>
 </html>
