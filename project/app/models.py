@@ -17,7 +17,10 @@ class Product(models.Model):
     category = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
     warranty = models.CharField(max_length=100, blank=True, null=True)
     stock = models.PositiveIntegerField(default=1)
-    image = models.ImageField(upload_to='product_images/', blank=True, null=True)  
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Existing main image
+    additional_image1 = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Additional image 1
+    additional_image2 = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Additional image 2
+    additional_image3 = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Additional image 3
 
     def __str__(self):
         return self.name

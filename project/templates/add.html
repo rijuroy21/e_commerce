@@ -2,11 +2,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% if data1 %}Edit{% else %}Add{% endif %} Product - VaultGuard</title>
-    <link rel="stylesheet" href="{% static 'css/firstpage.css' %}">
-    <link rel="stylesheet" href="{% static 'css/add.css' %}">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% if data1 %}Edit{% else %}Add{% endif %} Product - VaultGuard</title>
+        <link rel="stylesheet" href="{% static 'css/firstpage.css' %}">
+        <link rel="stylesheet" href="{% static 'css/add.css' %}">
 </head>
 <body>
 
@@ -15,8 +15,8 @@
     <nav class="sidebar-nav">
         <a href="{% url 'firstpage' %}">Home</a>
         <a href="{% url 'add_product' %}">Add Product</a>
-        <a href="{% url 'admin_bookings' %}"> Bookings</a>
-        <a href="{% url 'user_list' %}"> User List</a>
+        <a href="{% url 'admin_bookings' %}">Bookings</a>
+        <a href="{% url 'user_list' %}">User List</a>
         <a href="{% url 'logout' %}">Logout</a>
     </nav>
 </div>
@@ -37,9 +37,18 @@
             {% csrf_token %}
 
             <div class="form-section">
-                <h3>Upload Image</h3>
+                <h3>Upload Images</h3>
                 <label for="image">Main Image:</label>
                 <input type="file" name="image" id="image" accept="image/*" {% if not data1 %}required{% endif %}>
+
+                <label for="additional_image1">Additional Image 1:</label>
+                <input type="file" name="additional_image1" id="additional_image1" accept="image/*">
+
+                <label for="additional_image2">Additional Image 2:</label>
+                <input type="file" name="additional_image2" id="additional_image2" accept="image/*">
+
+                <label for="additional_image3">Additional Image 3:</label>
+                <input type="file" name="additional_image3" id="additional_image3" accept="image/*">
             </div>
 
             <div class="form-section">
@@ -53,7 +62,6 @@
 
                 <label for="offerprice">Offer Price:</label>
                 <input type="number" name="offerprice" step="0.01" value="{{ data1.offerprice|default:'' }}">
-
 
                 <label for="category">Category:</label>
                 <select name="category" required>

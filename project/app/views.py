@@ -33,8 +33,15 @@ def product(request, id):
         if cart:
             cart_item_ids = cart.items.values_list('product_id', flat=True)
 
-    # Since you only have one image field, just pass the single image
-    additional_images = [product.image] if product.image else []
+    # Collect all available images
+    additional_images = [
+        product.image,
+        product.additional_image1,
+        product.additional_image2,
+        product.additional_image3
+    ]
+    # Filter out None values
+    additional_images = [img for img in additional_images if img]
 
     similar_products = Product.objects.filter(category=product.category).exclude(id=product.id)
 
@@ -44,7 +51,6 @@ def product(request, id):
         'additional_images': additional_images,
         'similar_products': similar_products,
     })
-
 def product_list(request):
     products = Product.objects.all()
     categories = Product.objects.values_list('category', flat=True).distinct()
@@ -190,9 +196,15 @@ def edit_g(request, id):
         product.description = request.POST.get('description')
         product.stock = request.POST.get('stock')
 
-        # Update the image if provided
+        # Update images if provided
         if 'image' in request.FILES:
             product.image = request.FILES['image']
+        if 'additional_image1' in request.FILES:
+            product.additional_image1 = request.FILES['additional_image1']
+        if 'additional_image2' in request.FILES:
+            product.additional_image2 = request.FILES['additional_image2']
+        if 'additional_image3' in request.FILES:
+            product.additional_image3 = request.FILES['additional_image3']
 
         product.save()
         messages.success(request, 'Product updated successfully!')
@@ -201,18 +213,17 @@ def edit_g(request, id):
     return render(request, 'add.html', {'data1': product})
 
 
-
 def add_product(request):
     if request.method == 'POST':
         stock = request.POST.get('stock')
 
         if not stock:
             messages.error(request, "Stock is required.")
-            return redirect('add_product_url')
+            return redirect('add_product')
 
         if int(stock) < 0:
             messages.error(request, "Invalid stock value.")
-            return redirect('add_product_url')
+            return redirect('add_product')
 
         Product.objects.create(
             name=request.POST.get('name'),
@@ -222,14 +233,15 @@ def add_product(request):
             category=request.POST.get('category'),
             warranty=request.POST.get('warranty'),
             stock=stock,
-            image=request.FILES.get('image'),  # Only this image field
+            image=request.FILES.get('image'),  # Main image
+            additional_image1=request.FILES.get('additional_image1'),  # Additional image 1
+            additional_image2=request.FILES.get('additional_image2'),  # Additional image 2
+            additional_image3=request.FILES.get('additional_image3'),  # Additional image 3
         )
         messages.success(request, "Product added successfully!")
-        return redirect('firstpage')  # Ensure the redirect happens here after success
+        return redirect('firstpage')
 
-    # This part handles the GET request to render the form
     return render(request, 'add.html')
-
 
 @login_required(login_url='login')
 def add_to_cart(request, product_id):
