@@ -808,10 +808,27 @@ def confirm_order(request, order_id):
 def payment_successful(request):
     return render(request, 'payment_successful.html')
 
+@login_required
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
+    
     if request.method == "POST":
-        order.delete()
+        # Check if the order is in a cancellable state (not Delivered, Returned, or Cancelled)
+        if order.status in ['Ordered', 'Confirmed', 'Shipped']:
+            # Update order status to Cancelled
+            order.status = 'Cancelled'
+            order.save()
+            
+            # Restore stock for each item in the order
+            for order_item in order.items.all():
+                product = order_item.product
+                product.stock += order_item.quantity
+                product.save()
+            
+            messages.success(request, f"Order #{order.id} has been cancelled successfully.")
+        else:
+            messages.error(request, "This order cannot be cancelled.")
+    
     return redirect('profile')
 
 def order_success(request):
