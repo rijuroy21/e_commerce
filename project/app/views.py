@@ -418,7 +418,7 @@ def process_checkout(request):
             (item.product.offerprice or item.product.price) * item.quantity for item in cart_items
         )
 
-        # Create order with status "Pending" for all payment methods
+        # Create order with status "Ordered"
         order = Order.objects.create(
             user=request.user,
             name=selected_address.name,
@@ -429,7 +429,7 @@ def process_checkout(request):
             payment_method=payment_method,
             total_price=total_price,
             razorpay_payment_id=razorpay_payment_id if payment_method == 'razorpay' else '',
-            status='Pending'  # Always set to "Pending"
+            status='Ordered'  # Set to "Ordered"
         )
 
         # Create order items
@@ -452,6 +452,30 @@ def process_checkout(request):
 def order_detail_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_detail.html', {'order': order})
+
+@login_required(login_url='login')
+def update_order_status(request, order_id):
+    if not request.user.is_superuser:
+        messages.error(request, "You do not have permission to perform this action.")
+        return redirect('index')
+
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        valid_statuses = [choice[0] for choice in Order.STATUS_CHOICES]
+        
+        if new_status in valid_statuses and new_status != 'Cancelled':  # Cancel is handled separately
+            if order.status != new_status:
+                order.status = new_status
+                order.save()
+                messages.success(request, f"Order #{order.id} status updated to {new_status}.")
+            else:
+                messages.error(request, f"Order #{order.id} is already {new_status}.")
+        else:
+            messages.error(request, "Invalid status update.")
+    
+    return redirect('admin_bookings')
 
 @login_required(login_url='login')
 def update_quantity(request, product_id):
@@ -494,21 +518,17 @@ def track_order(request):
     if request.method == 'POST':
         order_number = request.POST.get('order_number')
         try:
-            order = Order.objects.select_related('product', 'user').get(order_number=order_number)
-            product = order.product
+            order = Order.objects.get(id=order_number, user=request.user)
             context = {
                 'order_status': order.status,
-                'product': product,
                 'order': order,
+                'items': order.items.all(),  # Pass all order items
             }
-            return render(request, 'order_tracking.html', {
-    'order_status': order.status,
-    'order': order,
-    'product': order.product,  # assuming order has a ForeignKey to Product
-})
+            return render(request, 'order_tracking.html', context)
         except Order.DoesNotExist:
-            return render(request, 'order_tracking.html', {'error': 'Order not found'})
-        
+            return render(request, 'order_tracking.html', {'error': 'Order not found or you do not have permission to view it'})
+    
+    return render(request, 'order_tracking.html')
 
 @login_required
 def user_list(request):
@@ -550,7 +570,7 @@ def delete_user(request, user_id):
 @login_required
 def profile_view(request):
     addresses = Address.objects.filter(user=request.user)
-    orders = Order.objects.filter(user=request.user)
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
 
     # Calculate delivery date for each order
     for order in orders:
@@ -587,7 +607,6 @@ def profile_view(request):
         'action': 'Edit',
     }
     return render(request, 'profile.html', context)
-
 
 @login_required
 def add_address(request):
@@ -760,10 +779,10 @@ def edit_username(request):
     }) 
 
 
-@login_required(login_url='login')
+@login_required
 def admin_bookings(request):
     if not request.user.is_superuser:
-        return render(request, 'unauthorized.html')
+        return redirect('index')
     orders = Order.objects.all().order_by('-created_at')
     return render(request, 'bookings.html', {'orders': orders})
 
@@ -797,6 +816,25 @@ def cancel_order(request, order_id):
 
 def order_success(request):
     return render(request, 'order_success.html')
+@login_required
+def return_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if request.method == 'POST':
+        # Check if the order is in 'Delivered' status and within 7 days
+        if order.status == 'Delivered':
+            order_age = timezone.now() - order.created_at
+            if order_age.days <= 7:
+                order.status = 'Returned'
+                order.save()
+                messages.success(request, f"Order #{order.id} has been marked for return.")
+            else:
+                messages.error(request, "Return period has expired (7 days).")
+        else:
+            messages.error(request, "Only delivered orders can be returned.")
+        return redirect('profile')
+    
+    return redirect('profile')
 
 
 def category(request):

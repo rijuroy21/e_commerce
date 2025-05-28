@@ -70,11 +70,13 @@ class Address(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('Pending', 'Pending'),
+        ('Ordered', 'Ordered'),
         ('Confirmed', 'Confirmed'),
+        ('Packed', 'Packed'),
         ('Shipped', 'Shipped'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled'),
+        ('Returned', 'Returned'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -86,7 +88,7 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=20)
     total_price = models.FloatField()
     razorpay_payment_id = models.CharField(max_length=100, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ordered')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

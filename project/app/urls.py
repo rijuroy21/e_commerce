@@ -25,7 +25,7 @@ urlpatterns = [
     path('dashboard/add-product/', views.add_product, name='add_product'),
     path('dashboard/edit/<int:id>/', views.edit_g, name='edit_g'),
     path('dashboard/delete/<int:id>/', views.delete_g, name='delete_g'),
-    path('confirm_order/<int:order_id>/', views.confirm_order, name='confirm_order'),
+    path('update-order-status/<int:order_id>/', views.update_order_status, name='update_order_status'),
 
     # User Management
     path('user-list/', views.user_list, name='user_list'),
@@ -53,14 +53,14 @@ urlpatterns = [
     path('process-checkout/', views.process_checkout, name='process_checkout'),
     path('buy-now/<int:product_id>/', views.buy_now, name='buy_now'),
     path('payment-successful/', views.payment_successful, name='payment_successful'),
-    path('order-confirmation/<int:order_id>/', views.contact, name='order_confirmation'),  # Might need to rename to an order summary view
+    path('order-confirmation/<int:order_id>/', views.contact, name='order_confirmation'),
 
     # Orders and Tracking
     path('order/<int:order_id>/', views.order_detail_view, name='order_detail'),
     path('order-tracking/', views.order_tracking, name='order_tracking'),
     path('track-order/', views.track_order, name='track_order'),
     path('cancel-order/<int:order_id>/', views.cancel_order, name='cancel_order'),
-
+    path('return-order/<int:order_id>/', views.return_order, name='return_order'),  # Added new URL
 
     # Info Pages
     path('terms/', views.terms, name='terms'),
@@ -68,6 +68,5 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
 ]
 
-# Serve media files during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
