@@ -203,7 +203,6 @@
         </div>
     </footer>
 </div>
-
 <script>
     function payNow() {
         const paymentMethod = document.getElementById('payment-method').value;
@@ -215,7 +214,7 @@
         } else if (paymentMethod === 'razorpay') {
             const options = {
                 "key": "{{ razorpay_key_id }}",
-                "amount": "{{ razorpay_amount|floatformat:'0' }}00",
+                "amount": "{{ razorpay_amount|floatformat:'%.0f' }}00",
                 "currency": "INR",
                 "name": "Vault Guard",
                 "description": "Secure Home Products",
@@ -226,6 +225,7 @@
                     input.name = "razorpay_payment_id";
                     input.value = response.razorpay_payment_id;
                     form.appendChild(input);
+                    form.action = "{% url 'process_checkout' %}";
                     form.submit();
                 },
                 "theme": {

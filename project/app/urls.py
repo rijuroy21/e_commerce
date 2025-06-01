@@ -18,6 +18,8 @@ urlpatterns = [
     path('profile/add-address/', views.add_address, name='add_address'),
     path('profile/edit-address/<int:address_id>/', views.edit_address, name='edit_address'),
     path('profile/delete-address/<int:address_id>/', views.delete_address, name='delete_address'),
+    path('recommendations/', views.recommendations, name='recommendations'),
+
 
     # Dashboard/Admin
     path('dashboard/', views.first_page, name='firstpage'),
@@ -57,6 +59,7 @@ urlpatterns = [
 
     # Orders and Tracking
     path('order/<int:order_id>/', views.order_detail_view, name='order_detail'),
+    path('order-success/', views.order_success, name='order_success'),
     path('order-tracking/', views.order_tracking, name='order_tracking'),
     path('track-order/', views.track_order, name='track_order'),
     path('cancel-order/<int:order_id>/', views.cancel_order, name='cancel_order'),

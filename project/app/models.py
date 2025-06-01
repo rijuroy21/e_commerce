@@ -1,29 +1,53 @@
+# app/models.py
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-CATEGORY_CHOICES = [
-    ('Lighting', 'Lighting'),
-    ('Actuators', 'Actuators'),
-    ('Touch Switches', 'Touch Switches'),
-    ('Security', 'Security'),
-]
-
 class Product(models.Model):
+    CATEGORY_CHOICES = [
+        ('Lighting', 'Lighting'),
+        ('Actuators', 'Actuators'),
+        ('Touch Switches', 'Touch Switches'),
+        ('Security', 'Security'),
+    ]
+
     name = models.CharField(max_length=255)
     price = models.FloatField()
     offerprice = models.FloatField(blank=True, null=True)
     description = models.TextField()
-    category = models.CharField(max_length=100, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     warranty = models.CharField(max_length=100, blank=True, null=True)
-    stock = models.PositiveIntegerField(default=1)
-    image = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Existing main image
-    additional_image1 = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Additional image 1
-    additional_image2 = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Additional image 2
-    additional_image3 = models.ImageField(upload_to='product_images/', blank=True, null=True)  # Additional image 3
+    stock = models.IntegerField()
+    image = models.ImageField(upload_to='products/')
+    additional_image1 = models.ImageField(upload_to='products/', blank=True, null=True)
+    additional_image2 = models.ImageField(upload_to='products/', blank=True, null=True)
+    additional_image3 = models.ImageField(upload_to='products/', blank=True, null=True)
+    rating = models.FloatField(default=0)
+    vector_data = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
+    
+class users(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    vector_data = models.TextField(null=True)
+    
+    def __str__(self):
+        return self.user.username 
+
+class ViewHistory(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user = models.ForeignKey(users, on_delete=models.CASCADE)
+    
+class SearchHistory(models.Model):
+    query = models.CharField(max_length=255)
+    user = models.ForeignKey(users, on_delete=models.CASCADE)
+
+class reviews(models.Model):
+    rating = models.IntegerField()
+    description = models.TextField()
+    uname = models.ForeignKey(users, on_delete=models.CASCADE)
+    pname = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews_set')    
 
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

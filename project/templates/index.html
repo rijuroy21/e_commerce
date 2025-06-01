@@ -169,7 +169,6 @@
     </button>
   </div>
 
-
   <!-- Featured Products -->
   <section class="products-container container my-5">
     <h2 class="section-title">Featured Products</h2>
@@ -204,7 +203,43 @@
     </div>
   </section>
 
-  
+  <!-- Recommended for You -->
+  {% if user.is_authenticated and recommended_products %}
+  <section class="products-container container my-5">
+    <h2 class="section-title">Recommended for You</h2>
+    <div class="row g-4">
+      {% for product in recommended_products %}
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card h-100 text-center shadow-sm">
+          <a href="{% url 'product' product.id %}">
+            <img
+              src="{{ product.image.url }}"
+              class="card-img-top"
+              alt="Image of {{ product.name }}"
+              style="height: 220px; object-fit: contain;"
+            />
+          </a>
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text mb-2">
+              <del>₹{{ product.price }}</del>
+              <strong class="text-danger">₹{{ product.offerprice }}</strong>
+            </p>
+            <a href="{% url 'product' product.id %}" class="btn btn-outline-primary mt-auto"
+              >View Details</a
+            >
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center">
+        <p>No recommendations available yet. Browse more products to get personalized suggestions!</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <!-- Why Choose Vault Guard? -->
   <section class="container my-5">
     <h2 class="section-title">Why Choose Vault Guard?</h2>
@@ -251,15 +286,13 @@
           class="gallery-img shadow-sm"
         />
       </div>
-
       <div class="col-sm-6 col-md-4 col-lg-3">
         <img
-          src="{% static 'images/bigstock-Motion-Sensor-Or-Detector-For-135350135-1.jpg' %}"
+          src="{% static 'images/motion-detectors.jpg' %}"
           alt="Motion Sensor"
           class="gallery-img shadow-sm"
         />
       </div>
-
       <div class="col-sm-6 col-md-4 col-lg-3">
         <img
           src="{% static 'images/what-is-a-smart-lock-how-do-smart-locks-work.webp' %}"
@@ -267,130 +300,131 @@
           class="gallery-img shadow-sm"
         />
       </div>
-      
     </div>
   </section>
-  
-  <!-- Our Commitment to Security -->
- <section class="commitment-section full-width-section">
-  <div class="container-fluid">
-    <h2 class="section-title">Our Commitment to Security</h2>
-    <div class="row g-4">
-      <div class="col-md-6 col-lg-3">
-        <div class="commitment-card text-center">
-          <div class="icon-circle mb-3">
-            <i class="bi bi-tools"></i>
-          </div>
-          <h5>Expert Installation & Maintenance</h5>
-          <p>Our certified technicians ensure professional installation and ongoing maintenance, keeping your security systems at peak performance for ultimate peace of mind.</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="commitment-card text-center">
-          <div class="icon-circle mb-3">
-            <i class="bi bi-shield-check"></i>
-          </div>
-          <h5>Proven Product Reliability</h5>
-          <p>Our products undergo rigorous testing to deliver unmatched durability and performance, trusted by thousands of homeowners across the country.</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="commitment-card text-center">
-          <div class="icon-circle mb-3">
-            <i class="bi bi-clock"></i>
-          </div>
-          <h5>24/7 Monitoring Services</h5>
-          <p>Stay protected around the clock with our optional monitoring plans, featuring real-time alerts and rapid response from our security experts.</p>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="commitment-card text-center">
-          <div class="icon-circle mb-3">
-            <i class="bi bi-house-check"></i>
-          </div>
-          <h5>Free Security Consultation</h5>
-          <p>Not sure where to start? Schedule a free consultation with our experts to design a personalized security solution for your home.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section><br><br>
 
-<section class="full-width-section news-offers-section">
-  <div class="container-fluid">
-    <h2 class="section-title">Latest News & Offers</h2>
-    <div class="row g-4">
-      <div class="col-md-6 col-lg-3">
-        <div class="card offer-card">
-          <img
-            src="{% static 'images/ultralock.webp' %}"
-            class="card-img-top"
-            alt="New product launch"
-            style="height: 180px; object-fit: cover"
-          />
-          <div class="card-body">
-            <h5 class="card-title">New Smart Lock Launch</h5>
-            <p class="card-text">
-              Discover our latest smart lock with enhanced security features and easy remote access.
-            </p>
-            <a href="#" class="btn btn-primary btn-sm">Read More</a>
+  <!-- Our Commitment to Security -->
+  <section class="commitment-section full-width-section">
+    <div class="container-fluid">
+      <h2 class="section-title">Our Commitment to Security</h2>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="commitment-card text-center">
+            <div class="icon-circle mb-3">
+              <i class="bi bi-tools"></i>
+            </div>
+            <h5>Expert Installation & Maintenance</h5>
+            <p>Our certified technicians ensure professional installation and ongoing maintenance, keeping your security systems at peak performance for ultimate peace of mind.</p>
           </div>
         </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="card offer-card">
-          <img
-            src="{% static 'images/8wo9wphilps.jpg' %}"
-            class="card-img-top"
-            alt="Summer Sale"
-            style="height: 180px; object-fit: cover"
-          />
-          <div class="card-body">
-            <h5 class="card-title">Summer Sale - Up to 30% Off</h5>
-            <p class="card-text">
-              Upgrade your home security with special discounts on select products this summer.
-            </p>
-            <a href="#" class="btn btn-primary btn-sm">Shop Now</a>
+        <div class="col-md-6 col-lg-3">
+          <div class="commitment-card text-center">
+            <div class="icon-circle mb-3">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <h5>Proven Product Reliability</h5>
+            <p>Our products undergo rigorous testing to deliver unmatched durability and performance, trusted by thousands of homeowners across the country.</p>
           </div>
         </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="card offer-card">
-          <img
-            src="{% static 'images/roles_and_responsibilities_of_customer_support_executive.webp' %}"
-            class="card-img-top"
-            alt="Customer Support"
-            style="height: 180px; object-fit: cover"
-          />
-          <div class="card-body">
-            <h5 class="card-title">24/7 Customer Support</h5>
-            <p class="card-text">
-              We’re here to assist you anytime, anywhere for a seamless shopping experience.
-            </p>
-            <a href="#" class="btn btn-primary btn-sm">Contact Us</a>
+        <div class="col-md-6 col-lg-3">
+          <div class="commitment-card text-center">
+            <div class="icon-circle mb-3">
+              <i class="bi bi-clock"></i>
+            </div>
+            <h5>24/7 Monitoring Services</h5>
+            <p>Stay protected around the clock with our optional monitoring plans, featuring real-time alerts and rapid response from our security experts.</p>
           </div>
         </div>
-      </div>
-      <div class="col-md-6 col-lg-3">
-        <div class="card offer-card">
-          <img
-            src="{% static 'images/best-systems-page-3.jpg' %}"
-            class="card-img-top"
-            alt="Exclusive Security Bundle"
-            style="height: 180px; object-fit: cover"
-          />
-          <div class="card-body">
-            <h5 class="card-title">Exclusive Security Bundle</h5>
-            <p class="card-text">
-              Get our premium security bundle, including a smart lock, camera, and motion sensor, at a special price.
-            </p>
-            <a href="#" class="btn btn-primary btn-sm">Explore Now</a>
+        <div class="col-md-6 col-lg-3">
+          <div class="commitment-card text-center">
+            <div class="icon-circle mb-3">
+              <i class="bi bi-house-check"></i>
+            </div>
+            <h5>Free Security Consultation</h5>
+            <p>Not sure where to start? Schedule a free consultation with our experts to design a personalized security solution for your home.</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section><br><br>
+
+  <!-- Latest News & Offers -->
+  <section class="full-width-section news-offers-section">
+    <div class="container-fluid">
+      <h2 class="section-title">Latest News & Offers</h2>
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="card offer-card">
+            <img
+              src="{% static 'images/ultralock.webp' %}"
+              class="card-img-top"
+              alt="New product launch"
+              style="height: 180px; object-fit: cover"
+            />
+            <div class="card-body">
+              <h5 class="card-title">New Smart Lock Launch</h5>
+              <p class="card-text">
+                Discover our latest smart lock with enhanced security features and easy remote access.
+              </p>
+              <a href="#" class="btn btn-primary btn-sm">Read More</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card offer-card">
+            <img
+              src="{% static 'images/8wo9wphilps.jpg' %}"
+              class="card-img-top"
+              alt="Summer Sale"
+              style="height: 180px; object-fit: cover"
+            />
+            <div class="card-body">
+              <h5 class="card-title">Summer Sale - Up to 30% Off</h5>
+              <p class="card-text">
+                Upgrade your home security with special discounts on select products this summer.
+              </p>
+              <a href="#" class="btn btn-primary btn-sm">Shop Now</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card offer-card">
+            <img
+              src="{% static 'images/roles_and_responsibilities_of_customer_support_executive.webp' %}"
+              class="card-img-top"
+              alt="Customer Support"
+              style="height: 180px; object-fit: cover"
+            />
+            <div class="card-body">
+              <h5 class="card-title">24/7 Customer Support</h5>
+              <p class="card-text">
+                We’re here to assist you anytime, anywhere for a seamless shopping experience.
+              </p>
+              <a href="#" class="btn btn-primary btn-sm">Contact Us</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="card offer-card">
+            <img
+              src="{% static 'images/best-systems-page-3.jpg' %}"
+              class="card-img-top"
+              alt="Exclusive Security Bundle"
+              style="height: 180px; object-fit: cover"
+            />
+            <div class="card-body">
+              <h5 class="card-title">Exclusive Security Bundle</h5>
+              <p class="card-text">
+                Get our premium security bundle, including a smart lock, camera, and motion sensor, at a special price.
+              </p>
+              <a href="#" class="btn btn-primary btn-sm">Explore Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="bg-dark text-white pt-5 pb-3 mt-5">
     <div class="container">
@@ -403,9 +437,9 @@
           <h5>Quick Links</h5>
           <ul class="list-unstyled">
             <li><a href="/" class="text-white text-decoration-none">Home</a></li>
-            <li>Contact Us</li>
-            <li>Privacy Policy</li>
-            <li>Terms & Conditions</li>
+            <li><a href="{% url 'contact' %}" class="text-white text-decoration-none">Contact Us</a></li>
+            <li><a href="{% url 'privacy' %}" class="text-white text-decoration-none">Privacy Policy</a></li>
+            <li><a href="{% url 'terms' %}" class="text-white text-decoration-none">Terms & Conditions</a></li>
           </ul>
         </div>
         <div class="col-md-3 mb-3">

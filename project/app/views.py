@@ -8,41 +8,105 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 import random
-from .models import Product, Cart, CartItem, Order,UserProfile
+import json
+import pandas as pd
+import numpy as np
 from django.contrib import auth
 from django.utils import timezone
 import razorpay
-from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from .models import *
-from .models import Address
 from razorpay.errors import BadRequestError, ServerError, GatewayError
-
+from .models import Product, Cart, CartItem, Order, OrderItem, UserProfile, Address, users, ViewHistory, SearchHistory, reviews
+from .vectorize import get_recommendations, combine_user_with_search_and_views, vectorize_product_with_reviews, vectorize_single_user
 
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-def index(request):
-    products = Product.objects.all().order_by('-id')[:8]
-    return render(request, "index.html", {"products": products})
+
+def update_product_vector(product):
+    try:
+        comments = [review.description for review in product.reviews_set.all()]
+        pro_data = [{
+            "pro_id": product.id,
+            "name": product.name,
+            "rating": product.rating,
+            "type": product.category,  # Changed 'type' to 'category' to match Product model
+            "description": product.description,
+            "reviews": ','.join(comments)
+        }]
+        df = pd.DataFrame(pro_data)
+        product_vector = vectorize_product_with_reviews(df)
+        if product_vector is not None and len(product_vector) > 0:
+            product.vector_data = json.dumps(product_vector[0].tolist())
+        else:
+            product.vector_data = json.dumps([])
+        product.save()
+    except Exception as e:
+        print(f"Error during product vectorization: {str(e)}")
+        product.vector_data = json.dumps([])
+        product.save()
 def product(request, id):
     product = get_object_or_404(Product, id=id)
     cart_item_ids = []
+    product_reviews = product.reviews_set.all()  # Fetch reviews using reviews_set
+    print(f"Reviews for product {product.id}: {product_reviews.count()}")  # Debug
 
     if request.user.is_authenticated:
         cart = Cart.objects.filter(user=request.user).first()
         if cart:
             cart_item_ids = cart.items.values_list('product_id', flat=True)
+        
+        # Save to view history
+        try:
+            user_obj = users.objects.get(user=request.user)
+            ViewHistory.objects.create(user=user_obj, product=product)
+            vectorize_single_user(request.user)
+        except users.DoesNotExist:
+            user_obj = users.objects.create(user=request.user)
+            ViewHistory.objects.create(user=user_obj, product=product)
+            vectorize_single_user(request.user)
 
-    # Collect all available images
+        # Handle review submission
+        if request.method == 'POST':
+            rating = request.POST.get('rating')
+            description = request.POST.get('description')
+            
+            if not rating or not description:
+                messages.error(request, "Please provide both rating and description.", extra_tags='review')
+            else:
+                try:
+                    rating = int(rating)
+                    if rating < 1 or rating > 5:
+                        messages.error(request, "Rating must be between 1 and 5.", extra_tags='review')
+                    else:
+                        # Create review
+                        new_review = reviews.objects.create(
+                            pname=product,
+                            uname=user_obj,
+                            rating=rating,
+                            description=description
+                        )
+                        print(f"Created review ID {new_review.id} for product {product.id}")  # Debug
+                        
+                        # Update product rating
+                        total_reviews = product.reviews_set.all()
+                        total_rating = sum(review.rating for review in total_reviews)
+                        product.rating = round(total_rating / len(total_reviews), 1) if total_reviews else rating
+                        product.save()
+                        
+                        # Update product vector
+                        update_product_vector(product)
+                        
+                        messages.success(request, "Review added successfully!", extra_tags='review')
+                        return redirect('product', id=product.id)
+                except ValueError:
+                    messages.error(request, "Invalid rating value.", extra_tags='review')
+                except Exception as e:
+                    messages.error(request, f"Error adding review: {str(e)}", extra_tags='review')
+                    print(f"Review creation error: {str(e)}")  # Debug
+
     additional_images = [
-        product.image,
-        product.additional_image1,
-        product.additional_image2,
-        product.additional_image3
+        img for img in [product.image, product.additional_image1, product.additional_image2, product.additional_image3] if img
     ]
-    # Filter out None values
-    additional_images = [img for img in additional_images if img]
-
     similar_products = Product.objects.filter(category=product.category).exclude(id=product.id)
 
     return render(request, 'product.html', {
@@ -50,7 +114,29 @@ def product(request, id):
         'cart_item_ids': cart_item_ids,
         'additional_images': additional_images,
         'similar_products': similar_products,
+        'reviews': product_reviews,  # Pass reviews as product_reviews
     })
+
+
+def index(request):
+    products = Product.objects.all().order_by('-id')[:8]
+    recommended_products = []
+    if request.user.is_authenticated:
+        recommended_products = get_recommendations(request.user, top_n=4)
+    if not recommended_products:
+        recommended_products = Product.objects.order_by('?')[:4]
+    return render(request, "index.html", {
+        "products": products,
+        "recommended_products": recommended_products
+    })
+
+
+@login_required(login_url='login')
+def recommendations(request):
+    recommended_products = get_recommendations(request.user, top_n=5)
+    return render(request, 'recommendations.html', {'recommended_products': recommended_products})
+
+
 def product_list(request):
     products = Product.objects.all()
     categories = Product.objects.values_list('category', flat=True).distinct()
@@ -76,6 +162,17 @@ def product_list(request):
 def search_results(request):
     query = request.GET.get('q')
     results = Product.objects.filter(name__icontains=query) if query else Product.objects.all()
+    
+    if query and request.user.is_authenticated:
+        try:
+            user_obj = users.objects.get(user=request.user)
+            SearchHistory.objects.create(user=user_obj, query=query)
+            vectorize_single_user(request.user)
+        except users.DoesNotExist:
+            user_obj = users.objects.create(user=request.user)
+            SearchHistory.objects.create(user=user_obj, query=query)
+            vectorize_single_user(request.user)
+    
     return render(request, 'search.html', {'results': results, 'query': query})
 
 def register_view(request):
@@ -99,10 +196,17 @@ def register_view(request):
 
         user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
+
+        user_profile = users.objects.create(user=user)
+        user_vector = combine_user_with_search_and_views(user_profile)
+        user_profile.vector_data = json.dumps(user_vector.tolist())
+        user_profile.save()
+
         messages.success(request, "Registration successful. Please login.")
         return redirect('login')
 
     return render(request, 'register.html')
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -213,35 +317,145 @@ def edit_g(request, id):
     return render(request, 'add.html', {'data1': product})
 
 
+@login_required(login_url='login')
 def add_product(request):
+    if not request.user.is_superuser:
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('login')
+
     if request.method == 'POST':
+        name = request.POST.get('name')
+        price = request.POST.get('price')
+        offerprice = request.POST.get('offerprice')
+        description = request.POST.get('description')
+        category = request.POST.get('category')
+        warranty = request.POST.get('warranty')
         stock = request.POST.get('stock')
+        image = request.FILES.get('image')
+        additional_image1 = request.FILES.get('additional_image1')
+        additional_image2 = request.FILES.get('additional_image2')
+        additional_image3 = request.FILES.get('additional_image3')
 
-        if not stock:
-            messages.error(request, "Stock is required.")
-            return redirect('add_product')
+        if not all([name, price, description, category, stock]):
+            messages.error(request, "Please fill in all required fields.")
+            return render(request, 'add.html', {
+                'name': name,
+                'price': price,
+                'offerprice': offerprice,
+                'description': description,
+                'category': category,
+                'warranty': warranty,
+                'stock': stock,
+            })
 
-        if int(stock) < 0:
-            messages.error(request, "Invalid stock value.")
-            return redirect('add_product')
+        try:
+            price = float(price)
+            offerprice = float(offerprice) if offerprice else None
+            stock = int(stock)
+            if stock < 0:
+                raise ValueError("Stock cannot be negative.")
+        except ValueError:
+            messages.error(request, "Invalid price or stock value.")
+            return render(request, 'add.html', {
+                'name': name,
+                'price': price,
+                'offerprice': offerprice,
+                'description': description,
+                'category': category,
+                'warranty': warranty,
+                'stock': stock,
+            })
 
-        Product.objects.create(
-            name=request.POST.get('name'),
-            price=request.POST.get('price'),
-            offerprice=request.POST.get('offerprice'),
-            description=request.POST.get('description'),
-            category=request.POST.get('category'),
-            warranty=request.POST.get('warranty'),
+        product = Product.objects.create(
+            name=name,
+            price=price,
+            offerprice=offerprice,
+            description=description,
+            category=category,
+            warranty=warranty,
             stock=stock,
-            image=request.FILES.get('image'),  # Main image
-            additional_image1=request.FILES.get('additional_image1'),  # Additional image 1
-            additional_image2=request.FILES.get('additional_image2'),  # Additional image 2
-            additional_image3=request.FILES.get('additional_image3'),  # Additional image 3
+            image=image,
+            additional_image1=additional_image1,
+            additional_image2=additional_image2,
+            additional_image3=additional_image3,
+            rating=0,
         )
+
+        # Add error handling for vectorization
+        try:
+            pro_data = [{
+                "pro_id": product.id,
+                "name": product.name,
+                "rating": product.rating,
+                "type": product.category,
+                "description": product.description,
+                "reviews": ''
+            }]
+            df = pd.DataFrame(pro_data)
+            product_vector = vectorize_product_with_reviews(df)
+            
+            # Check if product_vector is not empty and has valid data
+            if product_vector is not None and len(product_vector) > 0:
+                product.vector_data = json.dumps(product_vector[0].tolist())
+                product.save()
+            else:
+                # Handle case where vectorization fails
+                print(f"Warning: Vectorization failed for product {product.id}")
+                # You might want to set a default vector or leave it empty
+                product.vector_data = json.dumps([])
+                product.save()
+                
+        except Exception as e:
+            # Log the error and continue without crashing
+            print(f"Error during product vectorization: {str(e)}")
+            # Set empty vector data as fallback
+            product.vector_data = json.dumps([])
+            product.save()
+
         messages.success(request, "Product added successfully!")
         return redirect('firstpage')
 
-    return render(request, 'add.html')
+    return render(request, 'add.html', {
+        'categories': Product.CATEGORY_CHOICES,
+    })
+
+
+
+# def addReview(request,pk):
+#     if request.method == 'POST':
+#         rating=request.POST['rating']
+#         description=request.POST['description']
+#         prod=product.objects.get(pk=pk)
+        
+#         user=users.objects.get(username=request.session['user'])
+#         data=reviews.objects.create(rating=rating,description=description,uname=user,pname=prod)
+#         data.save()
+#         rev = reviews.objects.filter(pname=prod)
+#         total = [i.rating for i in rev] 
+#         if len(total) != 0:
+#             total_rating = round(sum(total) / len(total), 1)
+#             prod.rating = total_rating
+#         else:
+#             prod.rating = rating
+#         prod.save()
+#         comments = [i.description for i in rev]
+#         pro_data = [{
+#                 "pro_id": prod.id,
+#                 "name": prod.name,
+#                 "rating": prod.rating,
+#                 "type":prod.type,
+#                 "description": prod.description,
+#                 "reviews": ','.join(comments)
+#             }]
+#         df = pd.DataFrame(pro_data)
+#         product_vector = vectorize_product_with_reviews(df)
+#         print('pro',product_vector)
+#         prod.vector_data = json.dumps(product_vector[0].tolist())
+#         prod.save()
+#         return redirect(reverse('products', args=[pk]))
+#     else:
+#         return redirect(addReview)
+    
 
 @login_required(login_url='login')
 def add_to_cart(request, product_id):
@@ -399,6 +613,7 @@ def checkout(request):
         'addresses': addresses,
     }
     return render(request, 'checkout.html', context)
+
 @csrf_exempt
 @login_required(login_url='login')
 def process_checkout(request):
@@ -441,7 +656,7 @@ def process_checkout(request):
             payment_method=payment_method,
             total_price=total_price,
             razorpay_payment_id=razorpay_payment_id if payment_method == 'razorpay' else '',
-            status='Ordered'  # Set to "Ordered"
+            status='Ordered'
         )
 
         # Create order items
@@ -456,10 +671,10 @@ def process_checkout(request):
         # Clear cart after checkout
         cart_items.delete()
 
+        messages.success(request, 'Order placed successfully!')
         return redirect('payment_successful')
 
     return redirect('checkout')
-
 
 def order_detail_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -482,6 +697,29 @@ def update_order_status(request, order_id):
                 order.status = new_status
                 order.save()
                 messages.success(request, f"Order #{order.id} status updated to {new_status}.")
+
+                # Send email notification to the user
+                try:
+                    subject = f'Order #{order.id} Status Update'
+                    message = (
+                        f'Dear {order.user.username},\n\n'
+                        f'Your order #{order.id} has been updated to the following status: {new_status}.\n'
+                        f'Order Details:\n'
+                        f'Total Price: ₹{order.total_price}\n'
+                        f'Payment Method: {order.payment_method.title()}\n'
+                        f'For more details, please check your order history on our website.\n\n'
+                        f'Thank you for shopping with VaultGuard!'
+                    )
+                    send_mail(
+                        subject=subject,
+                        message=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[order.user.email],
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    messages.error(request, f"Order status updated, but failed to send email notification: {str(e)}")
+
             else:
                 messages.error(request, f"Order #{order.id} is already {new_status}.")
         else:
@@ -516,7 +754,6 @@ def update_quantity(request, product_id):
 def payment_successful(request):
     if request.user.is_superuser:
         return redirect('admin_bookings')
-    # Get the latest order for the user
     order = Order.objects.filter(user=request.user).order_by('-created_at').first()
     if not order:
         messages.error(request, 'No recent order found.')
@@ -844,7 +1081,13 @@ def cancel_order(request, order_id):
     return redirect('profile')
 
 def order_success(request):
-    return render(request, 'order_success.html')
+    order = Order.objects.filter(user=request.user).order_by('-created_at').first()
+    if not order:
+        messages.error(request, 'No recent order found.')
+        return redirect('index')
+    return render(request, 'order_success.html', {'order': order})
+
+
 @login_required
 def return_order(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
@@ -868,9 +1111,6 @@ def return_order(request, order_id):
 
 def category(request):
     return render(request, 'category.html')
-
-# def bookings(request):
-#     return render(request, 'bookings.html')
 
 def terms(request):
     return render(request, 'terms.html')
