@@ -372,6 +372,13 @@
             </div>
         </div>
     </div>
+     {% if messages %}
+        <div class="message-container">
+            {% for message in messages %}
+            <p class="message">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
     <!-- Footer -->
     <footer class="mt-auto py-4 bg-dark text-white">

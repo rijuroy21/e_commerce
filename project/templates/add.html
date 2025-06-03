@@ -87,6 +87,13 @@
         </form>
     </div>
 </div>
+ {% if messages %}
+        <div class="message-container">
+            {% for message in messages %}
+            <p class="message">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
 </body>
 </html>

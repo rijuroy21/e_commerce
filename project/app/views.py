@@ -647,7 +647,6 @@ def checkout(request):
         'addresses': addresses,
     }
     return render(request, 'checkout.html', context)
-
 @csrf_exempt
 @login_required(login_url='login')
 def process_checkout(request):
@@ -665,21 +664,18 @@ def process_checkout(request):
             messages.error(request, 'Please select a billing address.')
             return redirect('checkout')
 
-        # Validate stock for all items before proceeding
+        # Validate stock
         for cart_item in cart_items:
             if cart_item.product.stock < cart_item.quantity:
                 messages.error(request, f'Insufficient stock for {cart_item.product.name}. Only {cart_item.product.stock} items left.')
                 return redirect('checkout')
 
-        # Get selected address
         selected_address = get_object_or_404(Address, id=address_id, user=request.user)
-
-        # Calculate total price using offerprice if available
         total_price = sum(
             (item.product.offerprice or item.product.price) * item.quantity for item in cart_items
         )
 
-        # Create order with status "Ordered"
+        # Create order
         order = Order.objects.create(
             user=request.user,
             name=selected_address.name,
@@ -693,7 +689,7 @@ def process_checkout(request):
             status='Ordered'
         )
 
-        # Create order items
+        # Create order items and reduce stock
         for cart_item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -701,11 +697,12 @@ def process_checkout(request):
                 quantity=cart_item.quantity,
                 price=(cart_item.product.offerprice or cart_item.product.price)
             )
+            # Reduce stock
+            cart_item.product.stock -= cart_item.quantity
+            cart_item.product.save()
 
-        # Clear cart after checkout
+        # Clear cart
         cart_items.delete()
-
-        messages.success(request, 'Order placed successfully!')
         return redirect('payment_successful')
 
     return redirect('checkout')
@@ -1116,10 +1113,7 @@ def cancel_order(request, order_id):
                 product = order_item.product
                 product.stock += order_item.quantity
                 product.save()
-            
-            messages.success(request, f"Order #{order.id} has been cancelled successfully.")
-        else:
-            messages.error(request, "This order cannot be cancelled.")
+        
     
     return redirect('profile')
 

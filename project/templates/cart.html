@@ -153,6 +153,13 @@
     </div>
     {% endif %}
 </div>
+{% if messages %}
+        <div class="message-container">
+            {% for message in messages %}
+            <p class="message">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
 <footer class="bg-dark text-white pt-5 pb-3 mt-auto">
     <div class="container">
