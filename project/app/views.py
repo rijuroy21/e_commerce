@@ -7,6 +7,9 @@ from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+import re
 import random
 import json
 import pandas as pd
@@ -175,25 +178,54 @@ def search_results(request):
     
     return render(request, 'search.html', {'results': results, 'query': query})
 
+
+
+def is_valid_password(password):
+    return (
+        len(password) >= 8 and
+        re.search(r"[A-Z]", password) and
+        re.search(r"\d", password) and
+        re.search(r"[!@#$%^&*(),.?\":{}|<>]", password)
+    )
+
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        email = request.POST['email']
+        username = request.POST['username'].strip()
+        email = request.POST['email'].strip()
         password = request.POST['password']
         confpassword = request.POST['confpassword']
 
+        # Check if passwords match
         if password != confpassword:
             messages.error(request, "Passwords do not match.")
             return redirect('register')
 
+        # Validate email format
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Invalid email format.")
+            return redirect('register')
+
+        # Check if username already exists
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
             return redirect('register')
 
+        # Check if email already exists
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already in use.")
             return redirect('register')
 
+        # Validate password strength
+        if not is_valid_password(password):
+            messages.error(
+                request,
+                "Password must be at least 8 characters long, contain an uppercase letter, a number, and a special character."
+            )
+            return redirect('register')
+
+        # Create user
         user = User.objects.create_user(username=username, email=email, password=password)
         user.save()
 
@@ -205,6 +237,8 @@ def register_view(request):
         messages.success(request, "Registration successful. Please login.")
         return redirect('login')
 
+    # Clear messages for GET request
+    messages.get_messages(request).used = True
     return render(request, 'register.html')
 
 
@@ -815,15 +849,19 @@ def delete_user(request, user_id):
     messages.success(request, "User deleted successfully.")
     return redirect('user_list')    
         
+    
 
 @login_required
 def profile_view(request):
     addresses = Address.objects.filter(user=request.user)
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
 
-    # Calculate delivery date for each order
+    # Calculate delivery date and return eligibility for each order
     for order in orders:
         order.delivery_date = order.created_at + timedelta(days=5)
+        # Check if order is within 7 days for return eligibility
+        order.can_return = (order.status == 'Delivered' and 
+                           (timezone.now() - order.created_at).days < 7)
 
     editing_address = False
     address_to_edit = None
@@ -1033,6 +1071,11 @@ def admin_bookings(request):
     if not request.user.is_superuser:
         return redirect('index')
     orders = Order.objects.all().order_by('-created_at')
+    
+    # Calculate delivery date for each order (created_at + 5 days)
+    for order in orders:
+        order.delivery_date = order.created_at + timedelta(days=5)
+    
     return render(request, 'bookings.html', {'orders': orders})
 
 @login_required(login_url='login')

@@ -1,7 +1,7 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,9 +17,11 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+
         .btn-blue:hover {
             background-color: #0056b3;
         }
+
         .btn-gray {
             background-color: #6c757d;
             color: white;
@@ -28,43 +30,51 @@
             border-radius: 4px;
             cursor: not-allowed;
         }
+
         .message {
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 4px;
         }
+
         .message-success {
             background-color: #d4edda;
             color: #155724;
         }
+
         .message-error {
             background-color: #f8d7da;
             color: #721c24;
         }
+
         .order-table th,
         .order-table td {
             padding: 12px;
             text-align: left;
             vertical-align: middle;
         }
+
         .product-item {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 8px;
         }
+
         .product-item img {
             width: 50px;
             height: 50px;
             object-fit: cover;
             border-radius: 4px;
         }
+
         .status-buttons form {
             display: inline-block;
             margin-right: 5px;
         }
     </style>
 </head>
+
 <body>
     <div class="sidebar">
         <h2 class="brand">VAULTGUARD</h2>
@@ -81,9 +91,9 @@
         <section class="section-title">All Orders</section>
 
         {% if messages %}
-            {% for message in messages %}
-                <div class="message message-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="message message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
         {% endif %}
 
         <div class="table-wrapper">
@@ -109,7 +119,7 @@
                         <td>₹{{ order.total_price }}</td>
                         <td>
                             <small class="text-muted">
-                             {{ order.delivery_date|date:"D, M d, Y" }}
+                                {{ order.delivery_date|date:"D, M d, Y" }}
                             </small>
                         </td>
                         <td>
@@ -139,10 +149,15 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No orders found.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </body>
+
 </html>

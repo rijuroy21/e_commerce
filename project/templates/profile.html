@@ -338,16 +338,12 @@
                                 <div class="col-md-4 text-end">
                                     <p class="text-muted mb-1">Order Date: {{ order.created_at|date:"D, M d, Y"|default:"N/A" }}</p>
                                     <p class="text-muted mb-1">Est. Delivery: {{ order.delivery_date|date:"D, M d, Y"|default:"N/A" }}</p>
-                                    {% if order.status == 'Delivered' %}
-                                    {% with order_age=order.created_at|timesince %}
-                                    {% if order_age|slice:":7" < "7 days" %}
+                                    {% if order.can_return %}
                                     <form method="POST" action="{% url 'return_order' order.id %}">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-warning btn-sm"
                                             onclick="return confirm('Are you sure you want to return this order?');">Return Product</button>
                                     </form>
-                                    {% endif %}
-                                    {% endwith %}
                                     {% elif order.status in 'Ordered,Confirmed,Shipped' %}
                                     <form method="POST" action="{% url 'cancel_order' order.id %}">
                                         {% csrf_token %}
