@@ -491,30 +491,47 @@ def add_product(request):
 #         return redirect(addReview)
     
 
+
 @login_required(login_url='login')
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
 
+    # Check if product is out of stock
     if product.stock <= 0:
-        messages.error(request, "Product is out of stock.")
+        messages.error(request, "Product is out of stock.", extra_tags='stock')
         return redirect('product', id=product_id)
 
+    # Get or create the user's cart
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
 
-    if created:
-        cart_item.quantity = 1
+    # Default quantity
+    quantity = 1
+    if request.method == 'POST':
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+            if quantity < 1:
+                messages.error(request, "Quantity must be at least 1.", extra_tags='stock')
+                return redirect('product', id=product_id)
+            if quantity > product.stock:
+                messages.error(request, f"Only {product.stock} items available.", extra_tags='stock')
+                return redirect('product', id=product_id)
+        except ValueError:
+            messages.error(request, "Invalid quantity.", extra_tags='stock')
+            return redirect('product', id=product_id)
+
+    # Update cart item quantity
+    if not created:
+        # Check if adding the new quantity exceeds stock
+        if cart_item.quantity + quantity > product.stock:
+            messages.error(request, f"Stock limit reached. Only {product.stock - cart_item.quantity} more items available.", extra_tags='stock')
+            return redirect('product', id=product_id)
+        cart_item.quantity += quantity
     else:
-        if cart_item.quantity >= product.stock:
-            messages.error(request, "Stock limit reached.")
-            return redirect('cart_view')
-        cart_item.quantity += 1
+        cart_item.quantity = quantity
 
     cart_item.save()
-    product.stock -= 1
-    product.save()
-
-    messages.success(request, "Item added to cart.")
+    messages.success(request, f"{quantity} item(s) added to cart.", extra_tags='stock')
     return redirect('cart_view')
 
 @login_required(login_url='login')
@@ -522,32 +539,25 @@ def increment_cart(request, id):
     cart_item = get_object_or_404(CartItem, id=id, cart__user=request.user)
     product = cart_item.product
 
-    if product.stock > 0:
-        cart_item.quantity += 1
-        product.stock -= 1
-        cart_item.save()
-        product.save()
-        messages.success(request, "Quantity updated.")
-    else:
+    if cart_item.quantity >= product.stock:
         messages.error(request, "No more stock available.")
+        return redirect('cart_view')
 
+    cart_item.quantity += 1
+    cart_item.save()
+    messages.success(request, "Quantity updated.")
     return redirect('cart_view')
 
 @login_required(login_url='login')
 def decrement_cart(request, id):
     cart_item = get_object_or_404(CartItem, id=id, cart__user=request.user)
-    product = cart_item.product
 
     if cart_item.quantity > 1:
         cart_item.quantity -= 1
-        product.stock += 1
         cart_item.save()
-        product.save()
         messages.success(request, "Quantity updated.")
     else:
-        product.stock += 1
         cart_item.delete()
-        product.save()
         messages.success(request, "Item removed from cart.")
 
     return redirect('cart_view')
@@ -556,13 +566,42 @@ def decrement_cart(request, id):
 def buy_now(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
-    cart, created = Cart.objects.get_or_create(user=request.user)
+    # Check if product is out of stock
+    if product.stock <= 0:
+        messages.error(request, "Product is out of stock.", extra_tags='stock')
+        return redirect('product', id=product_id)
 
-    item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+    # Default quantity
+    quantity = 1
+    if request.method == 'POST':
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+            if quantity < 1:
+                messages.error(request, "Quantity must be at least 1.", extra_tags='stock')
+                return redirect('product', id=product_id)
+            if quantity > product.stock:
+                messages.error(request, f"Only {product.stock} items available.", extra_tags='stock')
+                return redirect('product', id=product_id)
+        except ValueError:
+            messages.error(request, "Invalid quantity.", extra_tags='stock')
+            return redirect('product', id=product_id)
+
+    # Get or create the user's cart
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+    # Update cart item quantity
     if not created:
-        item.quantity += 1
-        item.save()
+        # Check if adding the new quantity exceeds stock
+        if cart_item.quantity + quantity > product.stock:
+            messages.error(request, f"Stock limit reached. Only {product.stock - cart_item.quantity} more items available.", extra_tags='stock')
+            return redirect('product', id=product_id)
+        cart_item.quantity += quantity
+    else:
+        cart_item.quantity = quantity
 
+    cart_item.save()
+    messages.success(request, f"{quantity} item(s) added for purchase.", extra_tags='stock')
     return redirect('checkout')
 
 def remove_from_cart(request, product_id):
@@ -573,14 +612,13 @@ def remove_from_cart(request, product_id):
     except Cart.DoesNotExist:
         pass
     return redirect('checkout')
+
 @login_required(login_url='login')
 def delete_cart_item(request, id):
     cart_item = get_object_or_404(CartItem, id=id, cart__user=request.user)
-    cart_item.product.stock += cart_item.quantity
-    cart_item.product.save()
     cart_item.delete()
     messages.success(request, 'Item removed.')
-    return redirect('checkout') 
+    return redirect('cart_view')
 
 # views.py (updated cart_view)
 @login_required(login_url='login')
@@ -647,6 +685,7 @@ def checkout(request):
         'addresses': addresses,
     }
     return render(request, 'checkout.html', context)
+
 @csrf_exempt
 @login_required(login_url='login')
 def process_checkout(request):
@@ -657,18 +696,20 @@ def process_checkout(request):
         cart_items = CartItem.objects.filter(cart__user=request.user)
         
         if not cart_items.exists():
-            messages.error(request, 'Your cart is empty.')
+            messages.error(request, 'Your cart is empty.', extra_tags='stock')
             return redirect('cart_view')
         
         if not address_id:
-            messages.error(request, 'Please select a billing address.')
+            messages.error(request, 'Please select a billing address.', extra_tags='stock')
             return redirect('checkout')
 
-        # Validate stock
+        # Re-validate stock to prevent race conditions
         for cart_item in cart_items:
-            if cart_item.product.stock < cart_item.quantity:
-                messages.error(request, f'Insufficient stock for {cart_item.product.name}. Only {cart_item.product.stock} items left.')
-                return redirect('checkout')
+            # Refresh product from database to get latest stock
+            product = Product.objects.get(id=cart_item.product.id)
+            if product.stock < cart_item.quantity:
+                messages.error(request, f'Insufficient stock for {product.name}. Only {product.stock} items left.', extra_tags='stock')
+                return redirect('checkout')  # Stay in checkout
 
         selected_address = get_object_or_404(Address, id=address_id, user=request.user)
         total_price = sum(
@@ -691,6 +732,14 @@ def process_checkout(request):
 
         # Create order items and reduce stock
         for cart_item in cart_items:
+            # Refresh product again to ensure consistency
+            product = Product.objects.get(id=cart_item.product.id)
+            if product.stock < cart_item.quantity:
+                # Roll back order if stock changed
+                order.delete()
+                messages.error(request, f'Insufficient stock for {product.name}. Please try again.', extra_tags='stock')
+                return redirect('checkout')
+            
             OrderItem.objects.create(
                 order=order,
                 product=cart_item.product,
@@ -698,15 +747,15 @@ def process_checkout(request):
                 price=(cart_item.product.offerprice or cart_item.product.price)
             )
             # Reduce stock
-            cart_item.product.stock -= cart_item.quantity
-            cart_item.product.save()
+            product.stock -= cart_item.quantity
+            product.save()
 
         # Clear cart
         cart_items.delete()
+     
         return redirect('payment_successful')
 
     return redirect('checkout')
-
 def order_detail_view(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_detail.html', {'order': order})
@@ -767,17 +816,18 @@ def update_quantity(request, product_id):
         action = request.POST.get('action')
         product = cart_item.product
 
-        if action == 'increase' and cart_item.quantity < product.stock:
+        if action == 'increase':
+            if cart_item.quantity + 1 > product.stock:
+                
+                return redirect('checkout')
             cart_item.quantity += 1
-            product.stock -= 1
             cart_item.save()
-            product.save()
+          
 
         elif action == 'decrease' and cart_item.quantity > 1:
             cart_item.quantity -= 1
-            product.stock += 1
             cart_item.save()
-            product.save()
+            
 
     return redirect('checkout')
 
@@ -1102,9 +1152,7 @@ def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     
     if request.method == "POST":
-        # Check if the order is in a cancellable state (not Delivered, Returned, or Cancelled)
         if order.status in ['Ordered', 'Confirmed', 'Shipped']:
-            # Update order status to Cancelled
             order.status = 'Cancelled'
             order.save()
             
@@ -1113,9 +1161,37 @@ def cancel_order(request, order_id):
                 product = order_item.product
                 product.stock += order_item.quantity
                 product.save()
-        
+            
+            messages.success(request, f"Order #{order.id} has been cancelled.")
     
     return redirect('profile')
+
+@login_required
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    if request.method == "POST":
+        if order.status in ['Ordered', 'Confirmed', 'Shipped']:
+            order.status = 'Cancelled'
+            order.save()
+            
+            # Restore stock for each item in the order
+            for order_item in order.items.all():
+                product = order_item.product
+                product.stock += order_item.quantity
+                product.save()
+            
+            messages.success(request, f"Order #{order.id} has been cancelled.")
+    
+    return redirect('profile')
+
+def clear_abandoned_carts():
+    threshold = timezone.now() - timedelta(hours=24)
+    old_carts = Cart.objects.filter(created_at__lt=threshold)
+    for cart in old_carts:
+        # No stock restoration needed since stock is only reduced in process_checkout
+        cart.items.all().delete()
+        cart.delete()
 
 def order_success(request):
     order = Order.objects.filter(user=request.user).order_by('-created_at').first()

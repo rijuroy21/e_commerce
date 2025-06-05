@@ -8,43 +8,69 @@
     <link rel="stylesheet" href="{% static 'css/firstpage.css' %}">
 </head>
 <body>
+    <header class="top-bar">
+        <button class="menu-toggle">☰</button>
+        <h1 class="brand">VAULTGUARD</h1>
+    </header>
 
-<div class="sidebar">
-    <h2 class="brand">VAULTGUARD</h2>
-    <nav class="sidebar-nav">
-        <a href="{% url 'firstpage' %}"> Home</a>
-        <a href="{% url 'add_product' %}"> Add Product</a>
-        <a href="{% url 'admin_bookings' %}"> Bookings</a>
-        <a href="{% url 'user_list' %}"> User List</a>
-        <a href="{% url 'logout' %}"> Logout</a>
-    </nav>
-</div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <button class="close-sidebar">✕</button>
+        </div><br><br>
+        <nav class="sidebar-nav">
+            <a href="{% url 'firstpage' %}">Home</a>
+            <a href="{% url 'add_product' %}">Add Product</a>
+            <a href="{% url 'admin_bookings' %}">Bookings</a>
+            <a href="{% url 'user_list' %}">User List</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </nav>
+    </div>
 
-<div class="main-content">
-    <section class="section-title">Product List</section>
-    <div class="product-list">
-        {% for product in products %}
-        <div class="card">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
-            <div class="card-info">
-                <h3>{{ product.name }}</h3>
-                <p><del>₹{{ product.price }}</del> <strong>₹{{ product.offerprice }}</strong></p>
-                <div class="card-actions">
-                    <a href="{% url 'edit_g' product.id %}" class="btn btn-blue">Edit</a>
-                    <a href="{% url 'delete_g' product.id %}" class="btn btn-red">Delete</a>
+    <div class="main-content">
+        <section class="section-title">Product List</section>
+        <div class="product-list">
+            {% for product in products %}
+            <div class="card">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <div class="card-info">
+                    <h3>{{ product.name }}</h3>
+                    <p><del>₹{{ product.price }}</del> <strong>₹{{ product.offerprice }}</strong></p>
+                    <div class="card-actions">
+                        <a href="{% url 'edit_g' product.id %}" class="btn btn-blue">Edit</a>
+                        <a href="{% url 'delete_g' product.id %}" class="btn btn-red">Delete</a>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-</div>
- {% if messages %}
+        {% if messages %}
         <div class="message-container">
             {% for message in messages %}
             <p class="message">{{ message }}</p>
             {% endfor %}
         </div>
         {% endif %}
+    </div>
 
+    <script>
+        const menuToggle = document.querySelector('.menu-toggle');
+        const closeSidebar = document.querySelector('.close-sidebar');
+        const sidebar = document.querySelector('.sidebar');
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.add('active');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
